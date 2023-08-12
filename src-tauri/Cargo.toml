@@ -1,0 +1,26 @@
+[package]
+name = "creazy"
+version = "0.0.0"
+description = "common tools for ama-creative team in gui version"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.3", features = [] }
+
+[dependencies]
+tauri = { version = "1.3", features = ["dialog-all", "fs-all", "os-all", "path-all", "protocol-asset", "shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# midi_file = "0.0.4"
+# patch libraries
+midi_file = {path = "./plugins/midi_file/"}
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
