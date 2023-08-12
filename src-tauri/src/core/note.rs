@@ -99,14 +99,37 @@ impl Note {
     self
   }
 
+  // https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
+  // https://studiocode.dev/resources/midi-middle-c/
+  // overall, base on amanotes definition
   pub fn convert_note_number_to_name(&self, num: u8) -> String {
     match num {
+      110 => "D8".to_string(),
+      109 => "C#8".to_string(),
+      108 => "C8".to_string(),
+      102 => "Gb7".to_string(),
       101 => "F7".to_string(),
       100 => "E7".to_string(),
       99 => "Eb7".to_string(),
       98 => "D7".to_string(),
       97 => "Db7".to_string(),
       96 => "C7".to_string(),
+      88 => "E6".to_string(),
+      86 => "C6".to_string(),
+      85 => "Db6".to_string(),
+      84 => "D6".to_string(),
+      17 => "F0".to_string(),
+      16 => "E0".to_string(),
+      15 => "D#0".to_string(),
+      14 => "D0".to_string(),
+      13 => "C#0".to_string(),
+      12 => "C0".to_string(),
+      5 => "F-1".to_string(),
+      4 => "E-1".to_string(),
+      3 => "D#-1".to_string(),
+      2 => "D-1".to_string(),
+      1 => "C#-1".to_string(),
+      0 => "C-1".to_string(),
       _ => "none".to_string()
     }
   }

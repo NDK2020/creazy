@@ -314,6 +314,12 @@ impl Message {
                 noimpl!("channel pressure: https://github.com/webern/midi_file/issues/X")
             }
             StatusType::PitchBend => {
+        // let pitch_bend = iter.read_or_die()?;
+        // println!("Pitch Bend: {}", byte.hex());
+
+        // println!("{:#04X?}", byte);
+
+        // Ok(Message::PitchBend(pitch_bend))
                 Ok(Message::Undefined1)
                 // noimpl!("pitch bend: https://github.com/webern/midi_file/issues/10")
             }

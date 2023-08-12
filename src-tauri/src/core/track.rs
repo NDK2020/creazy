@@ -40,14 +40,17 @@ pub struct Track {
 }
 
 impl Track {
-  pub fn get_data_from(
+  //--------------
+  // @main-track
+  //--------------
+  pub fn get_data_from_main_track(
     &mut self,
     header: &Header,
     track_has_tempo: &MfTrack,
-    track_has_notes: &MfTrack,
+    main_track: &MfTrack,
   ) {
     self.get_data_from_header(header);
-    self.get_data_from_tracks(track_has_tempo, track_has_notes);
+    self.get_data_from_tracks(track_has_tempo, main_track);
     self.calc_notes_delta_time_in_seconds();
 
     //
@@ -65,6 +68,30 @@ impl Track {
     self.get_raw_str_vec();
     //
     self.refine();
+  }
+
+
+  pub fn get_data_from_relation_track(
+    &mut self,
+    header: &Header,
+    track_has_tempo: &MfTrack,
+    relation_track: &MfTrack,
+  ) {
+    self.get_data_from_header(header);
+    self.get_data_from_tracks(track_has_tempo, relation_track);
+    self.calc_notes_delta_time_in_seconds();
+
+    //
+    let raw_notes_clone = self.raw_notes.clone();
+    self.set_notes_on(&raw_notes_clone);
+    self.set_notes_on_velocity_zero(&raw_notes_clone);
+    self.set_notes_off(&raw_notes_clone);
+    self.set_notes_durations();
+    //
+    let notes_on_clone = self.notes_on.clone();
+    self.set_notes_names(&notes_on_clone);
+    self.set_notes_velocities(&notes_on_clone);
+    //
   }
 
   fn get_data_from_header(&mut self, header: &Header) {
@@ -205,7 +232,6 @@ impl Track {
           .push(note_on.delta_time_in_seconds() + note_on_velocity_zero.delta_time_in_seconds())
       }
     }
-
   }
 
   pub fn set_notes_on(&mut self, notes: &[Note]) {
@@ -239,12 +265,14 @@ impl Track {
   }
 
   pub fn get_raw_str_vec(&mut self) {
-    let mut actual_id = 0; 
+    let mut actual_id = 0;
     let len = self.timespans.len();
     for (i, t) in self.timespans.iter().enumerate() {
       // note on & note off both equal 0 => this note and a note
       // before has double things depend on games
-      if self.check_note_on_off_is_zero(&i) { continue; }
+      if self.check_note_on_off_is_zero(&i) {
+        continue;
+      }
       //
       let mut note_name_mirror = "nil".to_string();
       if (i + 1 < len && self.check_note_on_off_is_zero(&(i + 1))) {
@@ -260,12 +288,7 @@ impl Track {
       //
       let str = format!(
         "id:{}-n:{}-t:{}-v:{}-d:{}-m:{}",
-        actual_id,
-        self.notes_names[i],
-        t,
-        self.notes_velocities[i],
-        duration,
-        note_name_mirror
+        actual_id, self.notes_names[i], t, self.notes_velocities[i], duration, note_name_mirror
       );
       actual_id += 1;
       self.raw_str_vec.push(str);
@@ -277,8 +300,9 @@ impl Track {
       return false;
     }
 
-    if (self.notes_on[*note_id].delta_time_in_seconds() == 0.0 
-    && self.notes_off[*note_id].delta_time_in_seconds() == 0.0) {
+    if (self.notes_on[*note_id].delta_time_in_seconds() == 0.0
+      && self.notes_off[*note_id].delta_time_in_seconds() == 0.0)
+    {
       return true;
     }
     false
@@ -286,13 +310,13 @@ impl Track {
 
   fn refine(&mut self) {
     // refine
-    self.timespans = self.timespans
+    self.timespans = self
+      .timespans
       .clone()
       .into_iter()
       .filter(|&e| e > 1e-2)
       .collect();
   }
-
 
   pub fn log(&self) {
     println!("--------------------");

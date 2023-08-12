@@ -47,7 +47,7 @@ impl Data {
       });
       let track_has_notes = tracks[self.track_has_note_id].clone();
       let track_closest_has_tempo = tracks[track_has_tempo_closest_id].clone();
-      self.track_main.get_data_from(
+      self.track_main.get_data_from_main_track(
         midi_file.header(),
         &track_closest_has_tempo,
         &track_has_notes

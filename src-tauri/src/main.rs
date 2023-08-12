@@ -9,6 +9,9 @@ use std::{error::Error, fs, fs::File, path::Path};
 mod core;
 use crate::core::{Data, Note, Track};
 
+mod games;
+use crate::games::Dr;
+
 mod libs;
 use crate::libs::custom_macros as cm;
 
@@ -69,6 +72,19 @@ fn test_read_midi_with_data() {
   data.log_main_track();
 }
 
+
+#[test]
+fn test_read_midi_dr() {
+  let file_path_str = get_file_path();
+  println!("file_path: {} ", file_path_str);
+  //
+  let midi_file = read_midi_file(file_path_str);
+
+  println!("len of tracks: {}", midi_file.tracks_len());
+  let mut dr = Dr::default();
+  dr.get_data_from(midi_file);
+}
+
 #[test]
 fn test_read_midi_raw() {
   let file_path_str = get_file_path();
@@ -84,6 +100,15 @@ fn test_read_midi_raw() {
     track.events().for_each(|te| println!("{:?}", te));
     println!("*********************");
   }
+}
+
+
+#[test]
+fn test_read_midi_pitch_bench() {
+  let file_path_str = get_file_path();
+  println!("file_path: {} ", file_path_str);
+  //
+  let midi_file = read_midi_file(file_path_str);
 }
 
 
@@ -108,10 +133,11 @@ fn test_all_songs() {
 
 fn get_file_path() -> String {
   let base_path = "./src/assets/";
-  let file_name = "Herewithme_playableads_tut";
+  // let file_name = "Herewithme_playableads_tut";
   // let file_name = "Cupid_FiftyFifty_BH_PlayableAd";
   // let file_name = "Believer_DueCats";
-  // let file_name = "a_2-phut-hon_Phao_best-cut_st";
+  let file_name = "a_2-phut-hon_Phao_best-cut_st";
+  // let file_name = "2phuthon-relation";
   let file_extension = ".mid";
 
   format!("{}{}{}", base_path, file_name, file_extension)
