@@ -23,6 +23,7 @@ declare module 'vue' {
     QuickLinks: typeof import('./../pages/quick-links/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SongJson: typeof import('./../pages/song-json/index.vue')['default']
     Upload: typeof import('./../components/upload.vue')['default']
   }
 }
