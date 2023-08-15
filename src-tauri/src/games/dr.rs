@@ -44,11 +44,14 @@ impl Dr {
     let tracks_clone = tracks.clone();
     tracks_clone.iter().enumerate().for_each(|(i, track)| {
       track.events().for_each(|te| {
-        if let Event::Meta(MetaEvent::TrackName(name)) = te.event() {
-          if let Event::Meta(MetaEvent::SetTempo(ms_per_quarter)) = te.event() {
-            track_has_tempo = track.clone();
-          }
+        // TrackEvent { delta_time: 0, event: Meta(SetTempo(MicrosecondsPerQuarter(468750))) }
 
+        if let Event::Meta(MetaEvent::SetTempo(ms_per_quarter)) = te.event() {
+          println!("{}", ms_per_quarter);
+          track_has_tempo = track.clone();
+        }
+
+        if let Event::Meta(MetaEvent::TrackName(name)) = te.event() {
           if (name.to_string().eq_ignore_ascii_case("main")) {
             main_track = track.clone();
             println!("{}", name);
@@ -66,12 +69,39 @@ impl Dr {
       .track_main
       .get_data_from_main_track(midi_file.header(), &track_has_tempo, &main_track);
 
-    self
-      .track_relation
-      .get_data_from_relation_track(midi_file.header(), &track_has_tempo, &relation_track);
+    self.track_relation.get_data_from_relation_track(
+      midi_file.header(),
+      &track_has_tempo,
+      &relation_track,
+    );
 
-    self.track_main.log_overall();
-    self.track_relation.log_overall();
+    // self.track_main.log_overall();
+    // self.track_relation.log_overall();
+    self.refine_track_relation();
+  }
+
+  fn refine_track_relation(&mut self) {
+    println!("refine track relation: ");
+    let notes_on = self.track_relation.notes_on().clone();
+    let notes_off = self.track_relation.notes_off().clone();
+
+    let new_notes_on: Vec<Note> = notes_off
+      .iter()
+      .filter(|n| {
+        // n.note_number() == 0 as u8 || n.note_number() == 1 || n.note_number() == 2
+        // *n.note_number() == 0
+        //   || *n.note_number() == 1
+        //   || *n.note_number() == 2
+        //   || *n.note_number() == 3
+        //   || *n.note_number() == 4
+        //   || *n.note_number() == 5
+        (0..=5).any(|x| *n.note_number() == x)
+      })
+      .cloned()
+      .collect();
+
+    new_notes_on.iter().for_each(|n| println!("{:?}", n));
+    // println!("{:?}", new_notes_on);
   }
 
   pub fn read_header(&mut self, header: &Header) {

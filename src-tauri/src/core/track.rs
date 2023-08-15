@@ -70,7 +70,6 @@ impl Track {
     self.refine();
   }
 
-
   pub fn get_data_from_relation_track(
     &mut self,
     header: &Header,
@@ -316,6 +315,17 @@ impl Track {
       .into_iter()
       .filter(|&e| e > 1e-2)
       .collect();
+  }
+
+  //----------
+  // @getter
+  //----------
+  pub fn notes_on(&self) -> &Vec<Note> {
+    &self.notes_on
+  }
+
+  pub fn notes_off(&self) -> &Vec<Note> {
+    &self.notes_off
   }
 
   pub fn log(&self) {
