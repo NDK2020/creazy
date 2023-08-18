@@ -1,5 +1,5 @@
 use crate::core::Note;
-use midi_file::core::Message;
+use midi_file::core::{Control, Message};
 use midi_file::file::{
   Division, Event, Header, MetaEvent, QuarterNoteDivision, Track as MfTrack, TrackEvent,
 };
@@ -28,6 +28,9 @@ pub struct Track {
   raw_notes: Vec<Note>,
   // timespan bwt notes
   timespans: Vec<f32>,
+  //
+  pans_dt: Vec<f32>,
+  //
   notes_on: Vec<Note>,
   notes_on_velocity_zero: Vec<Note>,
   notes_off: Vec<Note>,
@@ -53,6 +56,7 @@ impl Track {
     self.get_data_from_tracks(track_has_tempo, main_track);
     self.calc_notes_delta_time_in_seconds();
 
+    self.get_pans_dt(main_track);
     //
     let raw_notes_clone = self.raw_notes.clone();
     self.set_notes_on(&raw_notes_clone);
@@ -79,6 +83,7 @@ impl Track {
     self.get_data_from_header(header);
     self.get_data_from_tracks(track_has_tempo, relation_track);
     self.calc_notes_delta_time_in_seconds();
+    self.get_pans_dt(relation_track);
 
     //
     let raw_notes_clone = self.raw_notes.clone();
@@ -166,6 +171,35 @@ impl Track {
     }
     self.set_notes(&notes);
     self.set_num_of_notes(&notes);
+  }
+
+  fn get_pans_dt(&mut self, track_has_notes: &MfTrack) {
+    // self.get_tempo(track_has_tempo);
+    // self.calc_sec_per_tick();
+    // //
+    // self.get_name(track_has_notes);
+    // self.get_notes(track_has_notes);
+    let mut found_first_note = false;
+    track_has_notes.clone().events().for_each(|te| {
+
+
+      if (!found_first_note) {
+
+        if let Event::Midi(Message::Control(control_value)) = te.event() {
+          if Control::Pan == control_value.control() {
+            let v = te.delta_time() as f32 * self.seconds_per_tick;
+            self.pans_dt.push(v);
+          }
+        }
+      }
+
+      if matches!(te.event(), Event::Midi(Message::NoteOn(_)))
+        || matches!(te.event(), Event::Midi(Message::NoteOff(_))) {
+        found_first_note = true;
+      }
+
+      // exit at first note on
+    });
   }
 
   pub fn calc_notes_delta_time_in_seconds(&mut self) {
@@ -320,6 +354,10 @@ impl Track {
   //----------
   // @getter
   //----------
+  pub fn pans_dt(&self) -> &Vec<f32> {
+    &self.pans_dt
+  }
+
   pub fn notes_on(&self) -> &Vec<Note> {
     &self.notes_on
   }

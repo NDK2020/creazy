@@ -1,6 +1,6 @@
 use crate::core::{Note, Track};
 //
-use midi_file::core::Message;
+use midi_file::core::{Message, Control};
 use midi_file::file::{
   Division, Event, Header, MetaEvent, QuarterNoteDivision, Track as MfTrack, TrackEvent,
 };
@@ -21,6 +21,8 @@ pub struct Dr {
   division: u16,
   track_main: Track,
   track_relation: Track,
+  //
+  control_change_value: f32,
   //
   time_appear: Vec<f32>,
   output: Vec<String>,
@@ -43,11 +45,9 @@ impl Dr {
     let mut main_track: MfTrack = MfTrack::default();
     let mut relation_track: MfTrack = MfTrack::default();
 
-
     let tracks_clone = tracks.clone();
     tracks_clone.iter().enumerate().for_each(|(i, track)| {
       track.events().for_each(|te| {
-
         if let Event::Meta(MetaEvent::SetTempo(ms_per_quarter)) = te.event() {
           println!("{}", ms_per_quarter);
           track_has_tempo = track.clone();
@@ -67,17 +67,10 @@ impl Dr {
       })
     });
 
-
     self
       .track_main
       .get_data_from_main_track(midi_file.header(), &track_has_tempo, &main_track);
 
-// TrackEvent { delta_time: 0, event: Midi(Control(ControlChangeValue { channel: Channel(2), control: Pan, value: ControlValue(64) })) }
-    main_track.clone().events().for_each(|te|{
-      if let Event::Midi(Message::Control(control_value)) = te.event() {
-        println!("found control pan: {:?}", control_value.control() );
-      }
-    });
 
     //
     self.track_relation.get_data_from_relation_track(
@@ -85,6 +78,7 @@ impl Dr {
       &track_has_tempo,
       &relation_track,
     );
+
 
     // self.track_main.log_overall();
 
@@ -101,8 +95,8 @@ impl Dr {
     // }
     // self.track_main.log_overall();
     // self.track_relation.log_overall();
-    // self.refine_track_main();
-    // self.refine_track_relation();
+    self.refine_track_main();
+    self.refine_track_relation();
     // //
     // // //
     // self.gen_output();
@@ -131,6 +125,7 @@ impl Dr {
     self.track_main.set_notes_on(&new_notes_on);
     self.track_main.set_notes_off(&new_notes_off);
 
+    // self.track_main.pans_dt().clone().iter().for_each(|e| println!("{}", e));
     // self
     //   .track_main
     //   .notes_on()
@@ -163,16 +158,17 @@ impl Dr {
     self.track_relation.set_notes_on(&new_notes_on);
     self.track_relation.set_notes_off(&new_notes_off);
 
-    // self
-    //   .track_relation
-    //   .notes_on()
-    //   .iter()
-    //   .for_each(|e| println!("{:?}", e));
-    // self
-    //   .track_relation
-    //   .notes_off()
-    //   .iter()
-    //   .for_each(|e| println!("{:?}", e));
+    self.track_relation.pans_dt().clone().iter().for_each(|e| println!("{}", e));
+    self
+      .track_relation
+      .notes_on()
+      .iter()
+      .for_each(|e| println!("{:?}", e));
+    self
+      .track_relation
+      .notes_off()
+      .iter()
+      .for_each(|e| println!("{:?}", e));
   }
 
   fn gen_output(&mut self) {
@@ -200,12 +196,15 @@ impl Dr {
 
     let mut prev = 0f32;
     let offset = self.track_main.notes_on()[0].delta_time_in_seconds()
-     + self.track_main.notes_off()[0].delta_time_in_seconds();
+      + self.track_main.notes_off()[0].delta_time_in_seconds();
     prev = offset;
 
     // println!("{}", self.track_main.notes_on()[0].delta_time());
-    self.track_main.notes_on().iter().for_each(|e| println!("{}", e.delta_time()));
-    
+    self
+      .track_main
+      .notes_on()
+      .iter()
+      .for_each(|e| println!("{}", e.delta_time()));
 
     for (i, (note_on, note_off)) in self
       .track_main
@@ -214,9 +213,13 @@ impl Dr {
       .zip(self.track_main.notes_off().iter())
       .enumerate()
     {
-      if (i == 0) {continue;}
+      if (i == 0) {
+        continue;
+      }
       let s = prev + note_on.delta_time_in_seconds();
-      self.time_appear.push(prev + note_on.delta_time_in_seconds());
+      self
+        .time_appear
+        .push(prev + note_on.delta_time_in_seconds());
       prev += s + note_off.delta_time_in_seconds();
     }
     println!("offset: {}", offset);

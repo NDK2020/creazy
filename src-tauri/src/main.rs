@@ -4,7 +4,7 @@
 use serde::{ser::Serializer, Deserialize, Serialize};
 
 use midi_file::MidiFile;
-use std::{error::Error, fs, fs::File, path::Path};
+use std::{convert::TryFrom, error::Error, fs, fs::File, path::Path};
 
 mod core;
 use crate::core::{Data, Note, Track};
@@ -15,17 +15,30 @@ use crate::games::Dr;
 mod libs;
 use crate::libs::custom_macros as cm;
 
+//-------------------------
+//-- @midi-readder-writer
+//-------------------------
+// use midi_reader_writer::{
+//     ConvertTicksToMicroseconds, ConvertMicroSecondsToTicks,
+//     midly_0_5::{exports::Smf, merge_tracks, TrackSeparator},
+// };
+// use midly::{Smf, merge_tracks, TrackSeparator};
+
+
+
+
+
+
+
+
 
 // lsof -i @localhost
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![
-      read_midi
-    ])
+    .invoke_handler(tauri::generate_handler![read_midi])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
-
 
 // create the error type that represents all errors possible in our program
 // #[derive(Debug, thiserror::Error)]
@@ -43,7 +56,6 @@ fn main() {
 //     serializer.serialize_str(self.to_string().as_ref())
 //   }
 // }
-
 
 // #[derive(Debug, Deserialize, Serialize)]
 // struct MidiResponse {
@@ -72,7 +84,6 @@ fn test_read_midi_with_data() {
   data.log_main_track();
 }
 
-
 #[test]
 fn test_read_midi_dr() {
   let file_path_str = get_file_path();
@@ -84,6 +95,23 @@ fn test_read_midi_dr() {
   let mut dr = Dr::default();
   dr.get_data_from(midi_file);
 }
+
+// #[test]
+// fn test_midly() {
+//   let file_path_str = get_file_path();
+//   println!("file_path: {} ", file_path_str);
+//   // Load bytes first
+//   let data = std::fs::read(file_path_str).unwrap();
+//
+//   // Parse the raw bytes
+//   let mut smf = midly::Smf::parse(&data).unwrap();
+//
+//   for (i, track) in smf.tracks.iter().enumerate() {
+//     track.clone().iter().for_each(|te|  {
+//       println!("{:?}", te);
+//     });
+//   }
+// }
 
 #[test]
 fn test_read_midi_raw() {
@@ -102,7 +130,6 @@ fn test_read_midi_raw() {
   }
 }
 
-
 #[test]
 fn test_read_midi_pitch_bench() {
   let file_path_str = get_file_path();
@@ -110,7 +137,6 @@ fn test_read_midi_pitch_bench() {
   //
   let midi_file = read_midi_file(file_path_str);
 }
-
 
 #[test]
 fn test_all_songs() {
@@ -130,15 +156,14 @@ fn test_all_songs() {
   }
 }
 
-
 fn get_file_path() -> String {
   let base_path = "./src/assets/";
   // let file_name = "Herewithme_playableads_tut";
   // let file_name = "Cupid_FiftyFifty_BH_PlayableAd";
   // let file_name = "Believer_DueCats";
   // let file_name = "a_2-phut-hon_Phao_best-cut_st";
-  // let file_name = "2phuthon-relation";
   let file_name = "a_2-phut-hon-phao_15s_st";
+  // let file_name = "2PhutHon_Phao_bestcut_P3_15s_relation";
   let file_extension = ".mid";
 
   format!("{}{}{}", base_path, file_name, file_extension)
