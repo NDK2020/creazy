@@ -157,6 +157,12 @@ impl Note {
     self
   }
 
+
+  /// A getter for the `delta_time_in_seconds` field.
+  pub fn delta_time(&self) -> u32 {
+    self.delta_time
+  }
+
   /// A getter for the `delta_time_in_seconds` field.
   pub fn delta_time_in_seconds(&self) -> f32 {
     self.delta_time_in_seconds
