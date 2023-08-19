@@ -24,6 +24,9 @@ const on_game_id_select = (key: string) => {
     case 2:
       game_name.value = "gduc";
       break;
+    case 3:
+      game_name.value = "dr";
+      break;
     default:
       game_name.value = DEFAULT_NAME;
   }

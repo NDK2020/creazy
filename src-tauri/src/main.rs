@@ -3,7 +3,14 @@
 #![allow(unused)]
 use serde::{ser::Serializer, Deserialize, Serialize};
 
+//-------------
+// @midi_file
+//-------------
 use midi_file::MidiFile;
+use midi_file::file::{ Event, MetaEvent, TrackEvent };
+
+
+use std::io::{BufWriter, Read, Write};
 use std::{convert::TryFrom, error::Error, fs, fs::File, path::Path};
 
 mod core;
@@ -24,18 +31,11 @@ use crate::libs::custom_macros as cm;
 // };
 // use midly::{Smf, merge_tracks, TrackSeparator};
 
-
-
-
-
-
-
-
-
 // lsof -i @localhost
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![read_midi])
+    // .invoke_handler(tauri::generate_handler![get_raw_file])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -63,6 +63,16 @@ fn main() {
 //   track: Track,
 // }
 
+
+// pub fn read<R: Read>(r: R) -> Result<Self> {
+//   let bytes = r.bytes();
+//   let iter = ByteIter::new(bytes).context(io!())?;
+//   Ok(Self::read_inner(iter)?)
+// }
+
+//------------
+// @commands
+//------------
 #[tauri::command]
 fn read_midi(file_path_str: &str) -> Track {
   let midi_file = read_midi_file(file_path_str.to_string());
@@ -71,6 +81,17 @@ fn read_midi(file_path_str: &str) -> Track {
   data.track_main().clone()
 }
 
+// #[tauri::command]
+// fn get_raw_file(file_path_str: &str) -> File<tauri::command::Private> {
+//   let file_path = &Path::new(&file_path_str);
+//   let mut f = File::open(file_path).unwrap();
+//   f
+// }
+
+
+//--------
+// @test
+//--------
 #[test]
 fn test_read_midi_with_data() {
   let file_path_str = get_file_path();
@@ -131,6 +152,45 @@ fn test_read_midi_raw() {
 }
 
 #[test]
+fn test_read_midi_tmain() {
+  let file_path_str = get_file_path();
+  println!("file_path: {} ", file_path_str);
+  //
+  let midi_file = read_midi_file(file_path_str);
+  let mut tracks = midi_file.tracks();
+  for (i, track) in tracks.enumerate() {
+    track.events().for_each(|te| {
+      if let Event::Meta(MetaEvent::TrackName(name)) = te.event() {
+        if (name.to_string().eq_ignore_ascii_case("main")) {
+          println!("info of track name: {}", name);
+          track.events().for_each(|te| println!("{:?}", te));
+        }
+      }
+    })
+  }
+}
+
+
+#[test]
+fn test_read_midi_trelation() {
+  let file_path_str = get_file_path();
+  println!("file_path: {} ", file_path_str);
+  //
+  let midi_file = read_midi_file(file_path_str);
+  let mut tracks = midi_file.tracks();
+  for (i, track) in tracks.enumerate() {
+    track.events().for_each(|te| {
+      if let Event::Meta(MetaEvent::TrackName(name)) = te.event() {
+        if (name.to_string().eq_ignore_ascii_case("relation")) {
+          println!("info of track name: {}", name);
+          track.events().for_each(|te| println!("{:?}", te));
+        }
+      }
+    })
+  }
+}
+
+#[test]
 fn test_read_midi_pitch_bench() {
   let file_path_str = get_file_path();
   println!("file_path: {} ", file_path_str);
@@ -162,6 +222,7 @@ fn get_file_path() -> String {
   // let file_name = "Cupid_FiftyFifty_BH_PlayableAd";
   // let file_name = "Believer_DueCats";
   // let file_name = "a_2-phut-hon_Phao_best-cut_st";
+  // let file_name = "a_2-phut-hon_Phao_best-cut_st_v2";
   let file_name = "a_2-phut-hon-phao_15s_st";
   // let file_name = "2PhutHon_Phao_bestcut_P3_15s_relation";
   let file_extension = ".mid";

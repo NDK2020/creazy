@@ -20,6 +20,15 @@
             <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gduc</p>
           </div>
         </a-menu-item>
+
+        <a-menu-item key="3">
+          <div class="flex-center">
+            <Icon icon="game-icons:horizon-road" :style="{ fontSize: '28px', color: 'black'}" />
+
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">dr</p>
+          </div>
+        </a-menu-item>
+
       </a-menu>
     </template>
 
@@ -49,6 +58,7 @@ const on_click_menu: MenuProps["onClick"] = (e) => {
 <style lang="scss">
 .midi-reader-dropdown {
   margin: 20px;
+
   span {
     font-size: 20px;
   }

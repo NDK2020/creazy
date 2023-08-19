@@ -12,6 +12,7 @@ declare module 'vue' {
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
+    AUpload: typeof import('ant-design-vue/es')['Upload']
     DropdownGames: typeof import('./../components/dropdown-games.vue')['default']
     Greet: typeof import('./../components/Greet.vue')['default']
     Home: typeof import('./../pages/home/index.vue')['default']
