@@ -129,12 +129,12 @@ const on_select_file = async () => {
       get_data_from_front_end();
       break;
     default:
-      get_data_from_front_end();
-      // notification["error"]({
-      //   message: "No game selected",
-      //   description: "Please select game at dropdown button",
-      //   duration: 1.6
-      // });
+      // get_data_from_front_end();
+      notification["error"]({
+        message: "No game selected",
+        description: "Please select game at dropdown button",
+        duration: 1.6
+      });
       break;
 
   }
@@ -201,13 +201,13 @@ const get_data_from_front_end = async () => {
     let track_main = midi.tracks.find((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find(n => n.text = "main");
+        .find(n => n.text == "main");
     });
 
     let track_relation = midi.tracks.find((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find(n => n.text = "relation");
+        .find(n => n.text == "relation");
     });
 
     //--------------
@@ -225,24 +225,65 @@ const get_data_from_front_end = async () => {
     //   .filter(n => main_notes_number.includes(n.number));
     // dr.track_main.notes_off = dr.track_main.notes_off
     //   .filter(n => main_notes_number.includes(n.number));
-    // dr.track_main.get_time_appears();
-    // dr.track_main.get_durations();
-    // dr.track_main.get_min_duration();
 
-    console.log(dr.track_main);
-    test_2phuthon(dr.track_main.notes);
+    // console.log(dr.track_main);
+    // test_2phuthon(dr.track_main.notes);
     // 
     // //------------------
     // // @track-relation
     // //------------------
-    // dr.track_relation = new MfTrack(midi.header, track_tempo, "relation");
-    // dr.track_relation.get_data_basic(track_relation);
-    // const relation_notes_number = Array(6).fill(0).map((_, index) => index);
-    //
-    // dr.track_relation.notes_on = dr.track_relation.notes_on
-    //   .filter(n => relation_notes_number.includes(n.number));
-    // dr.track_relation.notes_off = dr.track_relation.notes_off
-    //   .filter(n => relation_notes_number.includes(n.number));
+    dr.track_relation = new MfTrack(midi.header, track_tempo, "relation");
+    dr.track_relation.get_data_basic(track_relation);
+
+    let final_notes: MergedNote[];
+
+    // refine track_main
+    let main_include_notes_number = [84, 85, 86, 96, 97, 98, 88, 100, 102]; 
+    let relation_inclucde_notes_number = Array(6).fill(0).map((_, index) => index);
+
+    let include_numbers = [...main_include_notes_number,
+      ...relation_inclucde_notes_number]
+
+    final_notes = [...dr.track_main.notes, ...dr.track_relation.notes];
+    final_notes = final_notes
+      .filter(n => include_numbers.includes(n.number))
+      .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
+
+    console.log(final_notes);
+
+
+    //-----------------
+    // @gen-dr-output
+    //-----------------
+    let output = final_notes.map((n,i) => {
+      //pid
+      let pid = "none";
+      if (n.number == 96 || n.number == 84 ) {
+        pid = "0"
+      }
+
+      if (n.number == 97 || n.number == 85 ) {
+        pid = "1"
+      }
+
+      if (n.number == 98 || n.number == 86 ) {
+        pid = "2"
+      }
+
+      let id_str = `id:${i}`
+      let n_str = `n:${n.number}`
+      let pid_str = `pid:${pid}`
+      let ta_str = `ta:${n.time_appear.secs}`
+      let d_str = `d:${n.duration.secs}`
+      return [id_str, n_str, pid_str, ta_str, d_str].join("-")
+    }) ;
+
+    midi_info.output_str = output.join(',')
+      song_info.value = `
+name: ${typeof path == "string" ? path.replace(/^.*[\\\/]/, "") : ""}
+num-of-notes: ${final_notes.length}
+`;
+
 
 
     console.log("midi data");
@@ -318,7 +359,7 @@ class MfTrack {
     // this.calc_note_time_appears();
     // this.get_notes_off(track);
     // this.get_notes_on(track);
-    // this.num_of_notes = this.notes_on?.length;
+    this.num_of_notes = this.notes?.length;
   }
 
   get_pans_dt(track: AnyEvent[] | undefined) {
@@ -376,13 +417,13 @@ class MfTrack {
               (this.raw_time_appears[i] - this.raw_time_appears[match_note_id_on]) || 0
             )
             .set_time_appear(this.raw_time_appears[match_note_id_on] || 0)
+            .set_from_track(this.name)
           this.notes.push(new_note);
         }
       }
 
     })
     this.notes.sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
-
   }
 
   find_match_note_id_on(id: number, note_off_number: number): number {
@@ -431,7 +472,7 @@ class MfTrack {
         if (prev_note != null) {
           prev_time_appear = prev_note.time_appear.ticks;
           prev_duration = prev_note.duration.ticks;
-        } 
+        }
 
         // recalc duration of concurrent nodes
         // as there is a case next raw note_off_event dt 
@@ -482,7 +523,7 @@ class MfTrack {
         //handle case first note i == 0
         if (prev_note == null) {
           cur_concurrent_notes_time_appear =
-            pans_dt_sum  + cur_note.delta_time.ticks;
+            pans_dt_sum + cur_note.delta_time.ticks;
           cur_note.time_appear.set(cur_concurrent_notes_time_appear);
         }
       }
@@ -579,14 +620,15 @@ class MfTrack {
 class MergedNote {
   order: number = -1;
   note_off_order = -1;
+  from_track: string = ""; 
   kind: string = "";
-  channel: string = "";
   number: number = -1;
-  seconds_per_tick: number = 0;
-  velocity: number = 0;
   delta_time: DeltaTime = new DeltaTime();
   duration: TimeAppear = new Duration();
   time_appear: Duration = new TimeAppear();
+  seconds_per_tick: number = 0;
+  channel: string = "";
+  velocity: number = 0;
 
   set_order(val: number) {
     this.order = val;
@@ -639,6 +681,11 @@ class MergedNote {
     return this;
   }
 
+  set_from_track(val: string) {
+    this.from_track = val;
+    return this;
+  }
+
   tick2sec(delta_time_in_ticks: number): number {
     return delta_time_in_ticks * this.seconds_per_tick;
   }
@@ -675,10 +722,10 @@ const test_2phuthon = (notes: MergedNote[]) => {
     console.log(`note: ${i} format: mock-data | output: is_equal`);
     let mock_ta = e.time_appear;
     let note_ta = notes[i].time_appear.ticks;
-    console.log(`time_appear: ${mock_ta} | ${note_ta}: ${mock_ta == note_ta}` );
+    console.log(`time_appear: ${mock_ta} | ${note_ta}: ${mock_ta == note_ta}`);
     let mock_d = e.duration;
     let note_d = notes[i].duration.ticks;
-    console.log(`time_appear: ${mock_d} | ${note_d}: ${mock_d == note_d}` );
+    console.log(`time_appear: ${mock_d} | ${note_d}: ${mock_d == note_d}`);
     console.groupEnd();
   })
 }
