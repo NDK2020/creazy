@@ -60,25 +60,38 @@ export interface Track2 {
   name: string,
   num_of_notes: number,
   notes_on: Note2[],
-  notes_off: Note[],
+  notes_off: Note2[],
   notes_names: string[],
   notes_velocities: string[],
-  pans_dt: number[],
+  pans_dt: {
+    ticks: number,
+    secs: number
+  }[],
   min_duration: number,
   durations: number[],
 }
 
 export interface Note2 {
   id: number,
-  delta_time: number,
+  /// delta-time: The time difference in ticks between 
+  /// the previous MIDI track event and the current one
+  /// delta-time in seconds
+  delta_time: {
+    ticks: number,
+    secs: number
+  },
   kind: string,
   channel: string,
   number: number,
   name: string,
   seconds_per_tick: number,
   velocity: number,
-  /// delta-time: The time difference in ticks between 
-  /// the previous MIDI track event and the current one
-  /// delta-time in seconds
-  delta_time_in_seconds: number,
+  duration: {
+    ticks: number,
+    secs: number
+  }
+  time_appear: {
+    ticks: number,
+    secs: number 
+  }
 }

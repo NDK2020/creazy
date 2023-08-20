@@ -55,6 +55,8 @@ import {
   NoteOffEvent
 } from "midifile-ts";
 
+import mock_2phuthon from "@/assets/a_2-phut-hon-phao_15s.json";
+
 //--------
 // @antd
 //--------
@@ -192,36 +194,59 @@ const get_data_from_front_end = async () => {
     const buf = Uint8Array2ArrayBuffer(file);
     const midi = midi_read(buf)
     //
-    let track_tempo = midi.tracks.find((events) => {
-      return events
-        .filter(is_set_tempo_event)
-    });
+    let track_tempo = midi.tracks.find((track_events) =>
+      track_events.find(is_set_tempo_event)
+    );
 
-    //
-    let track_main = midi.tracks.find((events) => {
-      return events
+    let track_main = midi.tracks.find((track_events) => {
+      return track_events
         .filter(is_track_name_event)
         .find(n => n.text = "main");
     });
 
-    let track_relation = midi.tracks.find((events) => {
-      return events
+    let track_relation = midi.tracks.find((track_events) => {
+      return track_events
         .filter(is_track_name_event)
-        .find(n => n.text = "main");
+        .find(n => n.text = "relation");
     });
-
-    dr.track_main = new MfTrack(midi.header, track_tempo);
-    dr.track_main.get_data_basic(track_main);
-    console.log(dr.track_main);
-    //
-    dr.track_relation = new MfTrack(midi.header, track_tempo);
-    dr.track_relation.get_data_basic(track_main);
-
 
     //--------------
     // @track-main
     //--------------
-    // console.log(track_main);
+    dr.track_main = new MfTrack(midi.header, track_tempo, "main");
+    dr.track_main.get_data_basic(track_main);
+
+    // let mut range_on = (84..=86).chain(96..=98).collect::<Vec<u8>>();
+    // range_on.extend([88, 100, 102].iter().copied());
+    // refine track_main
+    // let main_notes_number = [84, 85, 86, 96, 96, 98, 88, 100, 102]; 
+    //
+    // dr.track_main.notes_on = dr.track_main.notes_on
+    //   .filter(n => main_notes_number.includes(n.number));
+    // dr.track_main.notes_off = dr.track_main.notes_off
+    //   .filter(n => main_notes_number.includes(n.number));
+    // dr.track_main.get_time_appears();
+    // dr.track_main.get_durations();
+    // dr.track_main.get_min_duration();
+
+    console.log(dr.track_main);
+    test_2phuthon(dr.track_main.notes);
+    // 
+    // //------------------
+    // // @track-relation
+    // //------------------
+    // dr.track_relation = new MfTrack(midi.header, track_tempo, "relation");
+    // dr.track_relation.get_data_basic(track_relation);
+    // const relation_notes_number = Array(6).fill(0).map((_, index) => index);
+    //
+    // dr.track_relation.notes_on = dr.track_relation.notes_on
+    //   .filter(n => relation_notes_number.includes(n.number));
+    // dr.track_relation.notes_off = dr.track_relation.notes_off
+    //   .filter(n => relation_notes_number.includes(n.number));
+
+
+    console.log("midi data");
+    console.log(midi);
 
 
   } catch (err) {
@@ -243,15 +268,19 @@ const is_any_meta_event = (ev: AnyEvent): ev is AnyMetaEvent => ev.type ===
   "meta";
 
 
+const is_note_event = (ev: AnyEvent): ev is NoteEvent =>
+  is_any_channel_event(ev) && (ev.subtype === "noteOn" || ev.subtype ===
+    "noteOff");
 
-const is_note_on_event = (ev: AnyEvent): ev is NoteOnEvent =>
+const is_note_on_event = (ev: AnyEvent | NoteEvent): ev is NoteOnEvent =>
   is_any_channel_event(ev) && ev.subtype === "noteOn";
 
 
-const is_note_off_event = (ev: AnyEvent): ev is NoteOffEvent =>
+const is_note_off_event = (ev: AnyEvent | NoteEvent): ev is NoteOffEvent =>
   is_any_channel_event(ev) && ev.subtype === "noteOff";
 
-const is_control_pan_event = (ev: AnyEvent): ev is ControllerEvent => is_controller_event(ev) && ev.controllerType === 7;
+const is_control_pan_event = (ev: AnyEvent): ev is ControllerEvent =>
+  is_controller_event(ev) && ev.controllerType == 10;
 
 const is_controller_event = (ev: AnyEvent): ev is ControllerEvent =>
   is_any_channel_event(ev) && ev.subtype === "controller";
@@ -259,6 +288,7 @@ const is_controller_event = (ev: AnyEvent): ev is ControllerEvent =>
 const is_any_channel_event = (ev: AnyEvent): ev is AnyChannelEvent => ev.type ===
   "channel";
 
+type NoteEvent = NoteOnEvent | NoteOffEvent
 
 class MfTrack {
   name = "";
@@ -266,96 +296,391 @@ class MfTrack {
   division = 0.0;
   seconds_per_tick = 0.0;
   num_of_notes = 0.0;
-  notes_on = new Array<Note2>(0);
-  notes_off = new Array<Note2>(0);
+  raw_notes = new Array<NoteEvent>(0);
+  notes = new Array<MergedNote>(0);
+  notes_off = new Array<MergedNote>(0);
   min_duration = 0.0;
-  durations = new Array<number>(0);
-  pans_dt = new Array<number>(0);
+  pans_dt = new Array<{ ticks: number, secs: number }>(0);
 
-  constructor(header: MidiHeader, track_tempo: AnyEvent[] | undefined) {
+  constructor(header: MidiHeader, track_tempo: AnyEvent[] | undefined, name = "") {
     this.division = header.ticksPerBeat;
     this.tempo = track_tempo?.find(is_set_tempo_event)?.microsecondsPerBeat || 0;
-    this.calc_sec_per_tick();
+    this.name = name;
+    this.calc_secs_per_tick();
   }
 
   get_data_basic(track: AnyEvent[] | undefined) {
     this.get_pans_dt(track);
-    this.get_notes_on(track);
-    this.get_notes_off(track);
-    this.get_durations();
-    this.get_min_duration();
+    this.get_notes(track);
+    this.calc_note_time_appears();
+    // this.get_notes_off(track);
+    // this.get_notes_on(track);
+    // this.num_of_notes = this.notes_on?.length;
   }
 
   get_pans_dt(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
+
     this.pans_dt = track
       .filter(is_control_pan_event)
-      .map(e => e.deltaTime);
+      .map(e => ({
+        ticks: e.deltaTime,
+        secs: this.tick2sec(e.deltaTime)
+      }));
   }
 
-  get_notes_on(track: AnyEvent[] | undefined) {
+  get_notes(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
 
-    this.notes_on = track
-      .filter(is_note_on_event)
-      .map((e, i) => ({
-        id: i,
-        delta_time: e.deltaTime,
-        kind: "on",
-        channel: e.channel.toString(),
-        number: e.noteNumber,
-        name: "",
-        seconds_per_tick: this.seconds_per_tick,
-        velocity: e.velocity,
-        delta_time_in_seconds: this.calc_delta_time_in_seconds(e.deltaTime)
-      }));
+    this.raw_notes = track
+      .filter(is_note_event)
+      .map(e => e as NoteEvent)
+
+    this.raw_notes.forEach((e, i) => {
+
+      // merge 2 notes on/off
+      if (is_note_off_event(e)) {
+        //
+        let match_note_id_on = this.find_match_note_id_on(i, e.noteNumber);
+        //
+        if (match_note_id_on >= 0) {
+          let note_off = e as NoteOffEvent;
+          let note_on = this.raw_notes[match_note_id_on] as NoteOnEvent;
+          //
+          let new_note = new MergedNote()
+            .set_order(match_note_id_on)
+            .set_match_note_order(i)
+            .set_kind("merged-note")
+            .set_channel(note_on.channel.toString())
+            .set_number(note_on.noteNumber)
+            .set_secs_per_tick(this.seconds_per_tick)
+            .set_velocity(note_on.velocity)
+            .set_delta_time(note_on.deltaTime)
+            .set_duration(note_off.deltaTime)
+            .set_time_appear(0)
+          this.notes.push(new_note);
+        }
+      }
+
+    })
+
+  }
+
+  find_match_note_id_on(id: number, note_off_number: number): number {
+    for (let i = id; i >= 0; i--) {
+      let note = this.raw_notes[i];
+      if (is_note_on_event(this.raw_notes[i])) {
+        note = note as NoteOnEvent
+        if (note.noteNumber == note_off_number) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 
   get_notes_off(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
 
-    this.notes_on = track
-      .filter(is_note_off_event)
-      .map((e, i) => ({
-        id: i,
-        delta_time: e.deltaTime,
-        kind: "off",
-        channel: e.channel.toString(),
-        number: e.noteNumber,
-        name: "",
-        seconds_per_tick: this.seconds_per_tick,
-        velocity: e.velocity,
-        delta_time_in_seconds: this.calc_delta_time_in_seconds(e.deltaTime)
-      }));
+    this.notes_off = track.filter(is_note_off_event).map((e, i) =>
+      new MergedNote()
+        .set_order(i)
+        .set_kind("off")
+        .set_channel(e.channel.toString())
+        .set_number(e.noteNumber)
+        .set_secs_per_tick(this.seconds_per_tick)
+        .set_velocity(e.velocity)
+        .set_delta_time(e.deltaTime)
+        .set_duration(-1)
+        .set_time_appear(0)
+    )
   }
 
-  get_durations() {
-    if (!this.notes_off) return;
-    if (this.notes_off.length == 0) return;
-    this.durations = this.notes_off.map(e => e.delta_time_in_seconds)
+  get_notes_on(track: AnyEvent[] | undefined) {
+    if (track == undefined) return;
+    this.notes = track.filter(is_note_on_event).map((e, i) =>
+      new MergedNote()
+        .set_order(i)
+        .set_kind("on")
+        .set_channel(e.channel.toString())
+        .set_number(e.noteNumber)
+        .set_secs_per_tick(this.seconds_per_tick)
+        .set_velocity(e.velocity)
+        .set_delta_time(e.deltaTime)
+        .set_duration(this.notes_off[i].delta_time.ticks)
+        .set_time_appear(0)
+    )
   }
 
-  get_min_duration() {
-    if (!this.durations) return;
-    if (this.durations.length == 0) return;
-    this.min_duration = 
-      this.durations.reduce(
-        (acc, cur) => Math.min(acc, cur),
-        Number.MAX_VALUE 
-      );
+  calc_note_time_appears() {
+    if (!this.notes || this.notes.length == 0) return;
+    // let prev_time_appear = 0;
+    let pans_dt_sum = this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+    // prev_time_appear = pans_dt_sum;
+    // let prev_duration = 0;
+
+    let cur_concurrent_notes_time_appear = 0;
+    this.notes.forEach((cur_note, i) => {
+
+      //-------------------
+      // @concurrent-node
+      //-------------------
+      // case 0: next_note has same time_appear
+      // --1********6--
+      // --2****4------
+      // --3******5----
+
+      // handle begin note of concurrent notes as dt of this note is 
+      // > 0, the rest of concurrent notes is zero
+      if (cur_note.delta_time.ticks > 0 && this.is_next_note_dt_zero(i)) {
+        cur_concurrent_notes_time_appear = 0;
+        let prev_time_appear = 0;
+        let prev_duration = 0;
+        let prev_note = this.get_most_prev_note(i);
+        if (prev_note != null) {
+          prev_time_appear = prev_note.time_appear.ticks;
+          prev_duration = prev_note.duration.ticks;
+        } 
+
+        // recalc duration of concurrent nodes
+        // as there is a case next raw note_off_event dt 
+        // is the amount of ticks from
+        // last note_off event, not from its match note on
+
+        // find all concurrent notes
+        let next_note_id = i + 1;// search from next notes onward
+        while (this.is_next_note_dt_zero(next_note_id)) {
+          next_note_id++;
+        }
+
+        // recalc durations concurrent notes
+        let concurrent_prev = 0;
+        for (let j = i; j <= next_note_id; j++) {
+          concurrent_prev += this.notes[j].duration.ticks;
+          this.notes[j].duration.set(concurrent_prev)
+        }
+
+
+        if (prev_note != null) {
+          // case 0.1: prev_note is not overlapped with cur_note
+          // -----*******
+          // -----*******
+          // ****--------
+          // update time_appear for begin of concurrent notes
+          if (cur_note.order > prev_note.note_off_order) {
+            cur_concurrent_notes_time_appear =
+              prev_time_appear + prev_duration + cur_note.delta_time.ticks;
+            cur_note.time_appear.set(cur_concurrent_notes_time_appear);
+          }
+
+          // case 1.2: prev note overlaps with cur_note
+          // eg:1
+          // ------2*******4----- cur
+          // 1********3----------
+          //----------------------------------------
+          // eg:2
+          // -------2*****3------ cur
+          // ----1***********4-----
+          if (cur_note.order < prev_note.note_off_order) {
+            cur_concurrent_notes_time_appear =
+              prev_time_appear + cur_note.delta_time.ticks;
+            cur_note.time_appear.set(cur_concurrent_notes_time_appear);
+          }
+        }
+
+        //handle case first note i == 0
+        if (prev_note == null) {
+          cur_concurrent_notes_time_appear =
+            pans_dt_sum  + cur_note.delta_time.ticks;
+          cur_note.time_appear.set(cur_concurrent_notes_time_appear);
+        }
+      }
+
+      if (cur_note.delta_time.ticks == 0 && this.is_next_note_dt_zero(i)) {
+        cur_note.time_appear.set(cur_concurrent_notes_time_appear);
+      }
+
+      if (cur_note.delta_time.ticks == 0 && this.is_next_note_dt_above_zero(i)) {
+        cur_note.time_appear.set(cur_concurrent_notes_time_appear);
+      }
+
+
+      //------------------
+      // @disjoint node
+      //------------------
+
+      // check next note is not concurrent
+      if (cur_note.delta_time.ticks > 0 && this.is_next_note_dt_above_zero(i)) {
+        let prev_note = this.get_most_prev_note(i);
+        if (prev_note != null) {
+
+          // case 1.1: prev_note is not overlapped with cur_note
+          // -----*******
+          // ****--------
+          if (cur_note.order > prev_note.note_off_order) {
+            let val =
+              prev_note.time_appear.ticks + prev_note.duration.ticks
+              + cur_note.delta_time.ticks;
+            cur_note.time_appear.set(val);
+          }
+
+          // case 1.2: prev note overlaps with cur_note
+          // eg:1
+          // ------2*******4----- cur
+          // 1********3----------
+          //----------------------------------------
+          // eg:2
+          // -------2*****3------ cur
+          // ----1***********4-----
+          if (cur_note.order < prev_note.note_off_order) {
+            let val = prev_note.time_appear.ticks + cur_note.delta_time.ticks;
+            cur_note.time_appear.set(val);
+          }
+        }
+
+        if (prev_note == null) {
+          let val = pans_dt_sum + cur_note.delta_time.ticks;
+          cur_note.time_appear.set(val);
+        }
+      }
+
+    });
+
   }
 
-  calc_delta_time_in_seconds(dt: number): number {
-    return dt * this.seconds_per_tick;
+  get_most_prev_note(cur_id: number): MergedNote | null {
+    if (cur_id - 1 < 0) return null;
+    return this.notes[cur_id - 1];
+  }
+
+  is_next_note_dt_zero(id: number): boolean {
+    if (id + 1 >= this.notes.length) return false;
+    return this.notes[id + 1].delta_time.ticks == 0;
+  }
+
+  is_next_note_dt_above_zero(id: number): boolean {
+    if (id + 1 >= this.notes.length) return false;
+    return this.notes[id + 1].delta_time.ticks > 0;
+  }
+
+  //-----------
+  // @helpers
+  //-----------
+
+  tick2sec(delta_time_in_ticks: number): number {
+    return delta_time_in_ticks * this.seconds_per_tick;
+  }
+
+  sec2tick(delta_time_in_secs: number): number {
+    return delta_time_in_secs / this.seconds_per_tick;
   }
 
 
-  calc_sec_per_tick() {
+  calc_secs_per_tick() {
     let ms_per_tick = this.tempo / this.division;
     this.seconds_per_tick = ms_per_tick / 1000000.0;
   }
 }
 
+class MergedNote {
+  order: number = -1;
+  note_off_order = -1;
+  kind: string = "";
+  channel: string = "";
+  number: number = -1;
+  seconds_per_tick: number = 0;
+  velocity: number = 0;
+  delta_time: DeltaTime = new DeltaTime();
+  duration: TimeAppear = new Duration();
+  time_appear: Duration = new TimeAppear();
+
+  set_order(val: number) {
+    this.order = val;
+    return this;
+  }
+
+  set_match_note_order(val: number) {
+    this.note_off_order = val;
+    return this;
+  }
+
+  set_kind(val: string) {
+    this.kind = val;
+    return this;
+  }
+
+  set_channel(val: string) {
+    this.channel = val;
+    return this;
+  }
+
+  set_number(val: number) {
+    this.number = val;
+    return this;
+  }
+  set_secs_per_tick(val: number) {
+    this.seconds_per_tick = val;
+    return this;
+  }
+  set_velocity(val: number) {
+    this.velocity = val;
+    return this;
+  }
+  //
+  set_delta_time(new_val_in_tick: number) {
+    this.delta_time.seconds_per_tick = this.seconds_per_tick;
+    this.delta_time.set(new_val_in_tick);
+    return this;
+  }
+
+  set_duration(new_val_in_tick: number) {
+    this.duration.seconds_per_tick = this.seconds_per_tick;
+    this.duration.set(new_val_in_tick);
+    return this;
+  }
+
+  set_time_appear(new_val_in_tick: number) {
+    this.time_appear.seconds_per_tick = this.seconds_per_tick;
+    this.time_appear.set(new_val_in_tick);
+    return this;
+  }
+
+  tick2sec(delta_time_in_ticks: number): number {
+    return delta_time_in_ticks * this.seconds_per_tick;
+  }
+}
+
+interface ITimeUnit {
+  ticks: number,
+  secs: number
+}
+
+class TimeUnit implements ITimeUnit {
+  ticks: number = 0;
+  secs: number = 0;
+  seconds_per_tick: number = 0;
+
+  set(new_val_in_tick: number) {
+    this.ticks = new_val_in_tick;
+    this.secs = this.tick2sec(new_val_in_tick);
+  }
+  tick2sec(delta_time_in_ticks: number): number {
+    return delta_time_in_ticks * this.seconds_per_tick;
+  }
+}
+
+class DeltaTime extends TimeUnit { }
+class TimeAppear extends TimeUnit { }
+class Duration extends TimeUnit { }
+
+
+const test_2phuthon = (notes: MergedNote[]) {
+  let data = mock_2phuthon.data;
+  data.forEach((e, i) => {
+    console.log("note: 1");
+    console.log("")
+  })
+}
 
 
 
