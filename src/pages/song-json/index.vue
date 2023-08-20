@@ -26,20 +26,6 @@ const DEFAULT_ID = "1";
 const game_name = ref<string>(DEFAULT_NAME);
 const game_id = ref<string>(DEFAULT_ID);
 
-const on_game_id_select = (key: string) => {
-  console.log(key);
-  game_id.value = key;
-  switch (parseInt(key)) {
-    case 1:
-      game_name.value = "pi/bh";
-      break;
-    case 2:
-      game_name.value = "gduc";
-      break;
-    default:
-      game_name.value = DEFAULT_NAME;
-  }
-};
 
 //--------------------------
 // @read-dr-json-temporary
@@ -52,7 +38,6 @@ const on_click = () => {
   let tmp: string[] = new Array<string>(0);
   let level_data = sayso.levelData;
 
-  let len = level_data.length;
   level_data.forEach((item, i) => {
     let id = `id:${i}`;
     let cid = `cid:${item.noteID}`; 

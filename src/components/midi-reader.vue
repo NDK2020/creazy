@@ -41,7 +41,7 @@ import { readBinaryFile } from "@tauri-apps/api/fs";
 
 //
 import { Icon } from "@iconify/vue";
-import { Track, Track2, Note2 } from "@/types";
+import { Track } from "@/types";
 import {
   read as midi_read,
   TrackNameEvent,
@@ -715,6 +715,7 @@ class TimeAppear extends TimeUnit { }
 class Duration extends TimeUnit { }
 
 
+//@ts-ignore
 const test_2phuthon = (notes: MergedNote[]) => {
   let data = mock_2phuthon.data;
   data.forEach((e, i) => {
