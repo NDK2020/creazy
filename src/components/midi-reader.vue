@@ -301,6 +301,7 @@ class MfTrack {
   notes_off = new Array<MergedNote>(0);
   min_duration = 0.0;
   pans_dt = new Array<{ ticks: number, secs: number }>(0);
+  raw_time_appears = new Array<number>(0);
 
   constructor(header: MidiHeader, track_tempo: AnyEvent[] | undefined, name = "") {
     this.division = header.ticksPerBeat;
@@ -311,8 +312,10 @@ class MfTrack {
 
   get_data_basic(track: AnyEvent[] | undefined) {
     this.get_pans_dt(track);
-    this.get_notes(track);
-    this.calc_note_time_appears();
+    this.get_raw_notes(track);
+    this.get_raw_time_appear();
+    this.get_notes();
+    // this.calc_note_time_appears();
     // this.get_notes_off(track);
     // this.get_notes_on(track);
     // this.num_of_notes = this.notes_on?.length;
@@ -329,12 +332,25 @@ class MfTrack {
       }));
   }
 
-  get_notes(track: AnyEvent[] | undefined) {
+  get_raw_notes(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
 
     this.raw_notes = track
       .filter(is_note_event)
       .map(e => e as NoteEvent)
+  }
+
+  get_raw_time_appear() {
+    if (!this.raw_notes) return;
+    if (this.raw_notes.length == 0) return;
+
+    let tick_acc = this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+    this.raw_time_appears = this.raw_notes.map(e => tick_acc += e.deltaTime)
+  }
+
+  get_notes() {
+    if (!this.raw_notes) return;
+    if (this.raw_notes.length == 0) return;
 
     this.raw_notes.forEach((e, i) => {
 
@@ -356,17 +372,25 @@ class MfTrack {
             .set_secs_per_tick(this.seconds_per_tick)
             .set_velocity(note_on.velocity)
             .set_delta_time(note_on.deltaTime)
-            .set_duration(note_off.deltaTime)
-            .set_time_appear(0)
+            .set_duration(
+              (this.raw_time_appears[i] - this.raw_time_appears[match_note_id_on]) || 0
+            )
+            .set_time_appear(this.raw_time_appears[match_note_id_on] || 0)
           this.notes.push(new_note);
         }
       }
 
     })
+    this.notes.sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
 
   }
 
   find_match_note_id_on(id: number, note_off_number: number): number {
+
+    // ----1***********4----- cur
+    // -------2*****3------ 
+    // also recalc the delta time of note off 4
+    // currently the value is from 3 to 4
     for (let i = id; i >= 0; i--) {
       let note = this.raw_notes[i];
       if (is_note_on_event(this.raw_notes[i])) {
@@ -377,39 +401,6 @@ class MfTrack {
       }
     }
     return -1;
-  }
-
-  get_notes_off(track: AnyEvent[] | undefined) {
-    if (track == undefined) return;
-
-    this.notes_off = track.filter(is_note_off_event).map((e, i) =>
-      new MergedNote()
-        .set_order(i)
-        .set_kind("off")
-        .set_channel(e.channel.toString())
-        .set_number(e.noteNumber)
-        .set_secs_per_tick(this.seconds_per_tick)
-        .set_velocity(e.velocity)
-        .set_delta_time(e.deltaTime)
-        .set_duration(-1)
-        .set_time_appear(0)
-    )
-  }
-
-  get_notes_on(track: AnyEvent[] | undefined) {
-    if (track == undefined) return;
-    this.notes = track.filter(is_note_on_event).map((e, i) =>
-      new MergedNote()
-        .set_order(i)
-        .set_kind("on")
-        .set_channel(e.channel.toString())
-        .set_number(e.noteNumber)
-        .set_secs_per_tick(this.seconds_per_tick)
-        .set_velocity(e.velocity)
-        .set_delta_time(e.deltaTime)
-        .set_duration(this.notes_off[i].delta_time.ticks)
-        .set_time_appear(0)
-    )
   }
 
   calc_note_time_appears() {
@@ -512,6 +503,9 @@ class MfTrack {
       // check next note is not concurrent
       if (cur_note.delta_time.ticks > 0 && this.is_next_note_dt_above_zero(i)) {
         let prev_note = this.get_most_prev_note(i);
+        if (i == 9) {
+          console.log(`prev note of id 9: ${prev_note}`);
+        }
         if (prev_note != null) {
 
           // case 1.1: prev_note is not overlapped with cur_note
@@ -674,11 +668,18 @@ class TimeAppear extends TimeUnit { }
 class Duration extends TimeUnit { }
 
 
-const test_2phuthon = (notes: MergedNote[]) {
+const test_2phuthon = (notes: MergedNote[]) => {
   let data = mock_2phuthon.data;
   data.forEach((e, i) => {
-    console.log("note: 1");
-    console.log("")
+    console.group();
+    console.log(`note: ${i} format: mock-data | output: is_equal`);
+    let mock_ta = e.time_appear;
+    let note_ta = notes[i].time_appear.ticks;
+    console.log(`time_appear: ${mock_ta} | ${note_ta}: ${mock_ta == note_ta}` );
+    let mock_d = e.duration;
+    let note_d = notes[i].duration.ticks;
+    console.log(`time_appear: ${mock_d} | ${note_d}: ${mock_d == note_d}` );
+    console.groupEnd();
   })
 }
 
