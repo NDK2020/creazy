@@ -339,8 +339,6 @@ class MfTrack {
   num_of_notes = 0.0;
   raw_notes = new Array<NoteEvent>(0);
   notes = new Array<MergedNote>(0);
-  notes_off = new Array<MergedNote>(0);
-  min_duration = 0.0;
   pans_dt = new Array<{ ticks: number, secs: number }>(0);
   raw_time_appears = new Array<number>(0);
 
