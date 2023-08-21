@@ -22,9 +22,9 @@
 
 //----------------------------------------
 const DEFAULT_NAME = "...";
-const DEFAULT_ID = "1";
+// const DEFAULT_ID = "1";
 const game_name = ref<string>(DEFAULT_NAME);
-const game_id = ref<string>(DEFAULT_ID);
+// const game_id = ref<string>(DEFAULT_ID);
 
 
 //--------------------------
