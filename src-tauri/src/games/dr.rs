@@ -219,7 +219,7 @@ impl Dr {
 // Track main:
 // - đọc toàn bộ lấy note có duration thấp nhất làm chuẩn quét hết các note có cùng duration thấp nhất đó => danh sách note đơn (còn lại là note dài)
 // - node đơn có nodeId = 96 97 98 là note đơn cùng màu với bóng của người chơi và có vị trí 1 2 3 từ trái qua phải
-// - node đơn có nodeId = 85 85 86 là note đơn khác màu với bóng của người chơi và có vị trí 1 2 3 từ trái qua phải
+// - node đơn có nodeId = 84 85 86 là note đơn khác màu với bóng của người chơi và có vị trí 1 2 3 từ trái qua phải
 // - node đơn có nodeId = 102 là hộp quà bí mật
 // - các note dài cũng tương tự logic trên nhưng node dài sẽ có hiệu ứng ăn note dài
 // - note ngắn có nodeId = 100 là note cùng màu nhưng di chuyển qua lại 2 bên đường

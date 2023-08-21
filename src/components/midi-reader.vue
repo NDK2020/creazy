@@ -1,6 +1,6 @@
 <template>
   <div class="midi-reader flex-col-center w-full">
-    <div class="flex-end">
+    <div class="flex-end gap-12">
       <dropdown-games @dropdown-select="on_dropdown_select" />
 
       <a-button type="primary" @click="on_select_file" class="button flex-y-center">
@@ -9,6 +9,10 @@
           <Icon icon="simple-icons:midi" class="mt3-reader__icon" />
         </div>
       </a-button>
+
+      <a-switch v-if="game_id == '3'" v-model:checked="dr.include_track_relation"
+        checked-children="include-track-relation" un-checked-children="include-track-relation" 
+      />
 
     </div>
 
@@ -96,6 +100,7 @@ interface dr {
   track_relation?: MfTrack,
   pos_ids: number[],
   color_ids: number[]
+  include_track_relation: boolean
 }
 
 const dr = reactive<dr>({
@@ -103,6 +108,7 @@ const dr = reactive<dr>({
   track_relation: undefined,
   pos_ids: new Array<number>(0),
   color_ids: new Array<number>(0),
+  include_track_relation: false
 });
 
 
@@ -240,11 +246,14 @@ const get_data_from_front_end = async () => {
     // refine track_main
     let main_include_notes_number = [84, 85, 86, 96, 97, 98, 88, 100, 102]; 
     let relation_inclucde_notes_number = Array(6).fill(0).map((_, index) => index);
+    final_notes = [...dr.track_main.notes];
+    let include_numbers = [...main_include_notes_number ];
 
-    let include_numbers = [...main_include_notes_number,
-      ...relation_inclucde_notes_number]
+    if (dr.include_track_relation) {
+      final_notes = [...final_notes, ...dr.track_relation.notes]
+      include_numbers = [...include_numbers, ...relation_inclucde_notes_number]
+    }
 
-    final_notes = [...dr.track_main.notes, ...dr.track_relation.notes];
     final_notes = final_notes
       .filter(n => include_numbers.includes(n.number))
       .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);

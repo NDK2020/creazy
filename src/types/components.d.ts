@@ -11,6 +11,7 @@ declare module 'vue' {
     ADropdownButton: typeof import('ant-design-vue/es')['DropdownButton']
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
+    ASwitch: typeof import('ant-design-vue/es')['Switch']
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
     AUpload: typeof import('ant-design-vue/es')['Upload']
     DropdownGames: typeof import('./../components/dropdown-games.vue')['default']
