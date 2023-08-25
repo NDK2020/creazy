@@ -15,8 +15,8 @@
       placeholder="output" auto-size />
 
     
-    <div class="title-wrapper w-full mt-[16px] mb-[4px]"><h4> Song Info</h4></div>
     <a-textarea class="text-area" v-model:value="song_info" placeholder="song info" auto-size />
+    <div class="title-wrapper w-full mt-[16px] mb-[4px]"><h4> Song Info</h4></div>
 
     
     <div class="title-wrapper w-full mt-[16px] mb-[4px]"><h4> Raw Content </h4></div>
