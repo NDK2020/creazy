@@ -3,29 +3,53 @@
     Game
     <template #overlay>
       <a-menu @click="on_click_menu">
-        <a-menu-item key="1">
+        <a-menu-item key="-1">
           <div class="flex-center menu-item">
-            <Icon icon="svg-spinners:blocks-shuffle-3" class="text-black text-8xl" />
+            <Icon icon="ph:warning-circle-bold" class="text-black text-8xl"
+            :style="{ fontSize: '28px', color: 'gold' }"/>
             <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
-              pi/bh
+              pi/bh (old)
             </p>
           </div>
         </a-menu-item>
 
-        <a-menu-item key="2">
+        <a-menu-item key="bh">
+          <div class="flex-center menu-item">
+            <Icon icon="svg-spinners:bouncing-ball" class="text-black text-8xl" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
+              bh
+            </p>
+          </div>
+        </a-menu-item>
+
+        <a-menu-item key="dr">
+          <div class="flex-center">
+            <Icon icon="game-icons:horizon-road" :style="{ fontSize: '28px', color: 'black' }" />
+
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
+              dr
+            </p>
+          </div>
+        </a-menu-item>
+
+        <a-menu-item key="gduc">
           <div class="flex-center">
             <Icon icon="emojione:cat-face-with-wry-smile" flip="horizontal" :style="{ fontSize: '28px' }" />
 
             <Icon icon="emojione:cat-face-with-wry-smile" :style="{ fontSize: '28px' }" />
-            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gduc</p>
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
+              gduc
+            </p>
           </div>
         </a-menu-item>
 
-        <a-menu-item key="3">
+        <a-menu-item key="pi">
           <div class="flex-center">
-            <Icon icon="game-icons:horizon-road" :style="{ fontSize: '28px', color: 'black'}" />
-
-            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">dr</p>
+            <Icon icon="svg-spinners:blocks-scale" flip="horizontal" :style="{
+            fontSize: '28px', color: 'black' }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
+              pi
+            </p>
           </div>
         </a-menu-item>
 
@@ -46,7 +70,7 @@ const emit = defineEmits(["dropdown-select"]);
 const on_click_dropdown = (e: Event) => { };
 
 const on_click_menu: MenuProps["onClick"] = (e) => {
-  // console.log("click", e.key);
+  console.log("click", e.key);
   emit("dropdown-select", e.key);
 };
 

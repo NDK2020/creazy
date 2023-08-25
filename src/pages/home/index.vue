@@ -10,22 +10,28 @@
 <script setup lang="ts">
 
 const DEFAULT_NAME = "..."; 
-const DEFAULT_ID = "1"; 
+const DEFAULT_ID = "-1"; 
 const game_name = ref<string>(DEFAULT_NAME);
 const game_id = ref<string>(DEFAULT_ID);
 
 const on_game_id_select = (key: string) => {
   console.log(key);
   game_id.value = key;
-  switch (parseInt(key)) {
-    case 1:
-      game_name.value = "pi/bh";
+  switch (key) {
+    case "-1":
+      game_name.value = "pi/bh (old)";
       break;
-    case 2:
+    case "bh":
+      game_name.value = "bh";
+      break;
+    case "dr":
+      game_name.value = "dr";
+      break;
+    case "gduc":
       game_name.value = "gduc";
       break;
-    case 3:
-      game_name.value = "dr";
+    case "pi":
+      game_name.value = "pi";
       break;
     default:
       game_name.value = DEFAULT_NAME;
