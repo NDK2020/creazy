@@ -1,6 +1,6 @@
 use crate::core::{Note, Track};
 //
-use midi_file::core::{Message, Control};
+use midi_file::core::{Control, Message};
 use midi_file::file::{
   Division, Event, Header, MetaEvent, QuarterNoteDivision, Track as MfTrack, TrackEvent,
 };
@@ -24,7 +24,7 @@ pub struct Dr {
   //
   control_change_value: f32,
   //
-  time_appear: Vec<f32>,
+  time_appears: Vec<f32>,
   output: Vec<String>,
 }
 
@@ -71,14 +71,12 @@ impl Dr {
       .track_main
       .get_data_from_main_track(midi_file.header(), &track_has_tempo, &main_track);
 
-
     //
     self.track_relation.get_data_from_relation_track(
       midi_file.header(),
       &track_has_tempo,
       &relation_track,
     );
-
 
     // self.track_main.log_overall();
 
@@ -99,7 +97,7 @@ impl Dr {
     self.refine_track_relation();
     // //
     // // //
-    // self.gen_output();
+    self.gen_output();
   }
 
   fn refine_track_main(&mut self) {
@@ -158,17 +156,22 @@ impl Dr {
     self.track_relation.set_notes_on(&new_notes_on);
     self.track_relation.set_notes_off(&new_notes_off);
 
-    self.track_relation.pans_dt().clone().iter().for_each(|e| println!("{}", e));
-    self
-      .track_relation
-      .notes_on()
-      .iter()
-      .for_each(|e| println!("{:?}", e));
-    self
-      .track_relation
-      .notes_off()
-      .iter()
-      .for_each(|e| println!("{:?}", e));
+    // self
+    //   .track_relation
+    //   .pans_dt()
+    //   .clone()
+    //   .iter()
+    //   .for_each(|e| println!("{}", e));
+    // self
+    //   .track_relation
+    //   .notes_on()
+    //   .iter()
+    //   .for_each(|e| println!("{:?}", e));
+    // self
+    //   .track_relation
+    //   .notes_off()
+    //   .iter()
+    //   .for_each(|e| println!("{:?}", e));
   }
 
   fn gen_output(&mut self) {
@@ -190,40 +193,11 @@ impl Dr {
     //----------------
     // @time-appears
     //----------------
-    //---------------------
-    // @time-appears-main
-    //---------------------
-
-    let mut prev = 0f32;
-    let offset = self.track_main.notes_on()[0].delta_time_in_seconds()
-      + self.track_main.notes_off()[0].delta_time_in_seconds();
-    prev = offset;
-
-    // println!("{}", self.track_main.notes_on()[0].delta_time());
-    self
-      .track_main
-      .notes_on()
-      .iter()
-      .for_each(|e| println!("{}", e.delta_time()));
-
-    for (i, (note_on, note_off)) in self
-      .track_main
-      .notes_on()
-      .iter()
-      .zip(self.track_main.notes_off().iter())
-      .enumerate()
-    {
-      if (i == 0) {
-        continue;
-      }
-      let s = prev + note_on.delta_time_in_seconds();
-      self
-        .time_appear
-        .push(prev + note_on.delta_time_in_seconds());
-      prev += s + note_off.delta_time_in_seconds();
-    }
-    println!("offset: {}", offset);
-    self.time_appear.iter().for_each(|e| println!("{}", e));
+    self.track_main.get_time_appears();
+    // self.track_main.time_appears().iter().for_each(|e| println!("{}", e));
+    self.track_relation.get_time_appears();
+    self.track_relation.time_appears().iter().for_each(|e| println!("{}", e));
+    //
   }
 
   pub fn read_header(&mut self, header: &Header) {
@@ -241,3 +215,14 @@ impl Dr {
     self.division = value;
   }
 }
+// Khi đọc Musicalization Content sẽ đc 3 List<NoteData> là main, motif_main, relation
+// Track main:
+// - đọc toàn bộ lấy note có duration thấp nhất làm chuẩn quét hết các note có cùng duration thấp nhất đó => danh sách note đơn (còn lại là note dài)
+// - node đơn có nodeId = 96 97 98 là note đơn cùng màu với bóng của người chơi và có vị trí 1 2 3 từ trái qua phải
+// - node đơn có nodeId = 84 85 86 là note đơn khác màu với bóng của người chơi và có vị trí 1 2 3 từ trái qua phải
+// - node đơn có nodeId = 102 là hộp quà bí mật
+// - các note dài cũng tương tự logic trên nhưng node dài sẽ có hiệu ứng ăn note dài
+// - note ngắn có nodeId = 100 là note cùng màu nhưng di chuyển qua lại 2 bên đường
+// - note ngắn có nodeId = 88 là note khác màu nhưng di chuyển qua lại 2 bên đường
+// Track relation:
+// - mỗi một relation là 1 đoạn đường nếu đoạn tiếp theo cùng mood với đoạn trước thì có gờ đổi màu ở đó còn nếu khác mood với trước đó thì là nhảy qua đoạn đường khác.

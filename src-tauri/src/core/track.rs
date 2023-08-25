@@ -40,6 +40,7 @@ pub struct Track {
   //Duration is measured as the time between reception of a NoteOn and it’s corresponding NoteOff.
   // There is no way to know the duration of a note until you have seen the noteoff event.  By definition!
   notes_durations: Vec<f32>,
+  time_appears: Vec<f32>
 }
 
 impl Track {
@@ -181,10 +182,7 @@ impl Track {
     // self.get_notes(track_has_notes);
     let mut found_first_note = false;
     track_has_notes.clone().events().for_each(|te| {
-
-
       if (!found_first_note) {
-
         if let Event::Midi(Message::Control(control_value)) = te.event() {
           if Control::Pan == control_value.control() {
             let v = te.delta_time() as f32 * self.seconds_per_tick;
@@ -194,7 +192,8 @@ impl Track {
       }
 
       if matches!(te.event(), Event::Midi(Message::NoteOn(_)))
-        || matches!(te.event(), Event::Midi(Message::NoteOff(_))) {
+        || matches!(te.event(), Event::Midi(Message::NoteOff(_)))
+      {
         found_first_note = true;
       }
 
@@ -354,16 +353,79 @@ impl Track {
   //----------
   // @getter
   //----------
-  pub fn pans_dt(&self) -> &Vec<f32> {
-    &self.pans_dt
-  }
-
   pub fn notes_on(&self) -> &Vec<Note> {
     &self.notes_on
   }
 
   pub fn notes_off(&self) -> &Vec<Note> {
     &self.notes_off
+  }
+
+  pub fn pans_dt(&self) -> &Vec<f32> {
+    &self.pans_dt
+  }
+
+  pub fn time_appears(&self) -> &Vec<f32> {
+    &self.time_appears
+  }
+
+  //---------
+  // @utils
+  //---------
+  pub fn get_time_appears(&mut self)  {
+
+    let mut prev = 0f32;
+    // some time midi file has pans control control_change_value
+    // that affects the tick of midi
+    let mut offset = 0f32;
+    offset = self.pans_dt.iter().sum();
+    prev = offset;
+    println!("offset: {}", offset);
+    println!("tick per seconds: {}", self.seconds_per_tick);
+    // is_delta_time same as before
+    let len = self.notes_on().len();
+    let mut len_of_same_time_appear_notes = 0f32;
+    for (i, (note_on, note_off)) in self
+      .notes_on
+      .iter()
+      .zip(self.notes_off.iter())
+      .enumerate()
+    {
+      let s = prev + note_on.delta_time_in_seconds();
+      self.time_appears.push(s);
+
+        // if (i==0) {
+        //   println!("{}, {}, {}", prev, note_on.delta_time_in_seconds(), s);
+        // }
+
+      // cur_note_on != 0 and next_note_on is not same tick as current
+      if (note_on.delta_time() != 0
+        && i + 1 < len
+        && self.notes_on[i + 1].delta_time() > 0)
+      {
+        prev = s + note_off.delta_time_in_seconds();
+      }
+
+      //handle notes has same time appears
+
+      //// store the note_off val as if this note is the begin of
+      //// same tick series (other note off will be zero)
+      if (note_on.delta_time() != 0
+        && i + 1 < len
+        && self.notes_on()[i + 1].delta_time() == 0)
+      {
+        len_of_same_time_appear_notes = note_off.delta_time_in_seconds();
+        prev = s;
+      }
+
+      // cur_note_on == 0 and next_note_on is not same tick as current
+      if (note_on.delta_time() == 0
+        && i + 1 < len
+        && self.notes_on()[i + 1].delta_time() > 0)
+      {
+        prev = s + len_of_same_time_appear_notes;
+      }
+    }
   }
 
   pub fn log(&self) {
