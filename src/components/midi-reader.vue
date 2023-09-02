@@ -26,7 +26,6 @@
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
       <h4>Song Info</h4>
     </div>
-
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
       <h4>Raw Content</h4>
     </div>
@@ -192,9 +191,10 @@ interface IBh {
   track_main?: MfTrack;
   track_relation?: MfTrack;
   pos_ids: number[];
+  include_track_relation: boolean;
 }
 
-const bh = reactive<IDr>({
+const bh = reactive<IBh>({
   track_main: undefined,
   track_relation: undefined,
   pos_ids: new Array<number>(0),
@@ -353,6 +353,103 @@ name: ${typeof file_path.value == "string"
 num-of-notes: ${final_notes.length}
 `;
 };
+
+//----------------------
+// @bgoc/@bouncing-cat
+//----------------------
+interface IGboc {
+  track_main?: MfTrack;
+  track_relation?: MfTrack;
+  pos_ids: number[];
+  include_track_relation: boolean;
+}
+
+const gboc = reactive<IGboc>({
+  track_main: undefined,
+  track_relation: undefined,
+  pos_ids: new Array<number>(0),
+  include_track_relation: false,
+});
+
+const get_gboc_data = async () => {
+  await get_data_from_front_end();
+  gboc.track_main = tracks.main;
+  gboc.track_relation = tracks.relation;
+
+  let final_notes: MergedNote[];
+
+  // refine track_main
+  let main_include_notes_number = [84, 85, 86, 87, 88];
+  let relation_include_notes_number = [36, 37, 38, 39, 40];
+
+  final_notes = [...(gboc?.track_main?.notes ?? [])];
+  let include_numbers = [...main_include_notes_number];
+
+  if (gboc.include_track_relation) {
+    final_notes = [...final_notes, ...(gboc?.track_relation?.notes ?? [])];
+    include_numbers = [...include_numbers, ...relation_include_notes_number];
+  }
+
+  final_notes = final_notes
+    .filter((n) => include_numbers.includes(n.number))
+    .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
+
+  console.log(final_notes);
+
+  //--------------
+  // @gboc/@output
+  //--------------
+  let output = final_notes.map((n, i) => {
+    //pid
+  //|….1….3….5….|
+  //|…..2...4…..|
+    let pid = "none";
+    if (n.number == 84) {
+      pid = "0";
+    }
+
+    if (n.number == 85) {
+      pid = "1";
+    }
+
+    if (n.number == 86) {
+      pid = "2";
+    }
+
+    if (n.number == 87) {
+      pid = "3";
+    }
+
+    if (n.number == 88) {
+      pid = "4";
+    }
+
+    let id_str = `id:${i}`;
+    let n_str = `n:${n.number}`;
+    let pid_str = `pid:${pid}`;
+    let ta_str = `ta:${n.time_appear.secs}`;
+    let d_str = `d:${n.duration.secs}`;
+    let v_str = `v:${n.velocity}`;
+    return [id_str, n_str, pid_str, ta_str, d_str, v_str].join("-");
+  });
+
+  midi_info.output_str = output.join(",");
+  song_info.value = `
+name: ${typeof file_path.value == "string"
+      ? file_path.value.replace(/^.*[\\\/]/, "")
+      : ""
+    }
+num-of-notes: ${final_notes.length}
+`;
+}
+
+
+
+
+
+
+
+
 
 const get_data_from_front_end = async () => {
   try {

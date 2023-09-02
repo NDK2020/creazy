@@ -6,7 +6,7 @@
         <a-menu-item key="-1">
           <div class="flex-center menu-item">
             <Icon icon="ph:warning-circle-bold" class="text-black text-8xl"
-            :style="{ fontSize: '28px', color: 'gold' }"/>
+              :style="{ fontSize: '28px', color: 'gold' }"/>
             <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
               pi/bh (old)
             </p>
@@ -32,6 +32,15 @@
           </div>
         </a-menu-item>
 
+        <a-menu-item key="gboc">
+          <div class="flex-center">
+            <Icon icon="game-icons:hollow-cat" :style="{fontSize: '28px', color: 'black' }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
+              gboc
+            </p>
+          </div>
+        </a-menu-item>
+
         <a-menu-item key="gduc">
           <div class="flex-center">
             <Icon icon="emojione:cat-face-with-wry-smile" flip="horizontal" :style="{ fontSize: '28px' }" />
@@ -46,7 +55,7 @@
         <a-menu-item key="pi">
           <div class="flex-center">
             <Icon icon="svg-spinners:blocks-scale" flip="horizontal" :style="{
-            fontSize: '28px', color: 'black' }" />
+              fontSize: '28px', color: 'black' }" />
             <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">
               pi
             </p>
