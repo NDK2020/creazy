@@ -225,7 +225,7 @@ fn get_file_path() -> String {
   // let file_name = "a_2-phut-hon_Phao_best-cut_st_v2";
   let file_name = "a_2-phut-hon-phao_15s_st";
   // let file_name = "2PhutHon_Phao_bestcut_P3_15s_relation";
-  let file_extension = ".mid";
+  let file_extension = ".midi";
 
   format!("{}{}{}", base_path, file_name, file_extension)
 }

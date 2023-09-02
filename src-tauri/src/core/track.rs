@@ -144,9 +144,9 @@ impl Track {
       .events()
       .find(|e| matches!(e.event(), Event::Meta(MetaEvent::TrackName(_))));
 
-    if let Event::Meta(MetaEvent::TrackName(name)) = ev_name.unwrap().event() {
-      self.set_name(name.to_string());
-    }
+    // if let Event::Meta(MetaEvent::TrackName(name)) = ev_name.unwrap().event() {
+    //   self.set_name(name.to_string());
+    // }
   }
 
   fn set_name(&mut self, name: String) {
