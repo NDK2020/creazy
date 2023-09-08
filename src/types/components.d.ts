@@ -9,8 +9,10 @@ declare module 'vue' {
   export interface GlobalComponents {
     AButton: typeof import('ant-design-vue/es')['Button']
     ADropdownButton: typeof import('ant-design-vue/es')['DropdownButton']
+    AInputNumber: typeof import('ant-design-vue/es')['InputNumber']
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
+    ASpace: typeof import('ant-design-vue/es')['Space']
     ASwitch: typeof import('ant-design-vue/es')['Switch']
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
     AUpload: typeof import('ant-design-vue/es')['Upload']

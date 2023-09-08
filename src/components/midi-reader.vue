@@ -17,6 +17,23 @@
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
       <h4>Copy This Content</h4>
     </div>
+    <a-space direction="vertical" class="m-12">
+      <a-switch v-model:checked="cutter.enabled" checked-children="cutter-off" un-checked-children="cutter-on" />
+      <a-space>
+        note-on:
+        <a-input-number v-model:value="cutter.note_start" :min="0" :max="10000" />
+      </a-space>
+
+      <a-space>
+        note-off:
+        <a-input-number v-model:value="cutter.note_end" :min="0" :max="10000" />
+      </a-space>
+
+      <a-space>
+        song-start-time<a-input-number v-model:value="cutter.song_start_time" :min="0" :max="10000" />
+      </a-space>
+    </a-space>
+
     <a-textarea class="text-area" v-model:value="midi_info.output_str" placeholder="output" auto-size />
 
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
@@ -63,6 +80,16 @@ import {
 //-----------
 import { notification } from "ant-design-vue";
 
+//-----------
+// @cutsong
+//-----------
+const cutter = reactive({
+  enabled: true,
+  note_start: 0,
+  note_end: 0,
+  song_start_time: 0,
+});
+
 //---------
 // @props
 //---------
@@ -98,14 +125,12 @@ const tracks = reactive<ITracks>({
   include_track_relation: false,
 });
 
-
 const emit = defineEmits(["on_game_id_select"]);
 const on_dropdown_select = (key: string) => {
   console.log(key);
   game_id.value = key;
   emit("on_game_id_select", key);
 };
-
 
 // https://github.com/ryohey/midifile-ts
 
@@ -233,8 +258,8 @@ const get_bh_data = async () => {
   //--------------
   let output = final_notes.map((n, i) => {
     //pid
-  //|….1….3….5….|
-  //|…..2...4…..|
+    //|….1….3….5….|
+    //|…..2...4…..|
     let pid = "none";
     if (n.number == 96) {
       pid = "0";
@@ -265,6 +290,46 @@ const get_bh_data = async () => {
     return [id_str, n_str, pid_str, ta_str, d_str, v_str].join("-");
   });
 
+  //----------------------------------------
+
+  if (cutter.enabled) {
+    let tmp = final_notes.filter((n, i) => i >= cutter.note_start && i <=
+              cutter.note_end)
+
+    output = tmp.map((n, i) => {
+      //pid
+      //|….1….3….5….|
+      //|…..2...4…..|
+      let pid = "none";
+      if (n.number == 96) {
+        pid = "0";
+      }
+
+      if (n.number == 97) {
+        pid = "1";
+      }
+
+      if (n.number == 98) {
+        pid = "2";
+      }
+
+      if (n.number == 99) {
+        pid = "3";
+      }
+
+      if (n.number == 100) {
+        pid = "4";
+      }
+
+      let id_str = `id:${i}`;
+      let n_str = `n:${n.number}`;
+      let pid_str = `pid:${pid}`;
+      let ta_str = `ta:${n.time_appear.secs - cutter.song_start_time}`;
+      let d_str = `d:${n.duration.secs}`;
+      let v_str = `v:${n.velocity}`;
+      return [id_str, n_str, pid_str, ta_str, d_str, v_str].join("-");
+    });
+  }
   midi_info.output_str = output.join(",");
   song_info.value = `
 name: ${typeof file_path.value == "string"
@@ -273,7 +338,7 @@ name: ${typeof file_path.value == "string"
     }
 num-of-notes: ${final_notes.length}
 `;
-}
+};
 
 //--------------------
 // @dr/@dancing-road
@@ -401,8 +466,8 @@ const get_gboc_data = async () => {
   //--------------
   let output = final_notes.map((n, i) => {
     //pid
-  //|….1….3….5….|
-  //|…..2...4…..|
+    //|….1….3….5….|
+    //|…..2...4…..|
     let pid = "none";
     if (n.number == 84) {
       pid = "0";
@@ -441,15 +506,7 @@ name: ${typeof file_path.value == "string"
     }
 num-of-notes: ${final_notes.length}
 `;
-}
-
-
-
-
-
-
-
-
+};
 
 const get_data_from_front_end = async () => {
   try {
