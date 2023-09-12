@@ -401,6 +401,13 @@ const get_dr_data = async () => {
       pid = "2";
     }
 
+    // temporary
+    // note 88 is diff color but moving
+    // note 100 is same color but moving
+    if (n.number == 88 || n.number == 100) {
+      pid = "1";
+    }
+
     let id_str = `id:${i}`;
     let n_str = `n:${n.number}`;
     let pid_str = `pid:${pid}`;
