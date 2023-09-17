@@ -36,6 +36,7 @@ export class BH {
   };
 
   output_final = "";
+  total_notes = 0;
 
   constructor(midi: MidiFile, enabled_cutter = false) {
 
@@ -173,12 +174,15 @@ export class BH {
       let mc_str = `mc:${is_mc}`;
       return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str].join("-");
     });
+    this.total_notes = final_notes.length;
 
     //----------------------------------------
 
     if (this.cutter?.enabled) {
       let tmp = final_notes.filter((n, i) => i >= this.cutter.note_start && i <=
         this.cutter?.note_end)
+
+      this.total_notes = tmp.length;
 
       output = tmp.map((n, i) => {
         //pid
@@ -215,12 +219,5 @@ export class BH {
       });
     }
     return output.join(",");
-//     song_info.value = `
-// name: ${typeof file_path.value == "string"
-//         ? file_path.value.replace(/^.*[\\\/]/, "")
-//         : ""
-//       }
-// num-of-notes: ${final_notes.length}
-// `;
   }
 }

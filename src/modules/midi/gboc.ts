@@ -1,4 +1,3 @@
-
 import {
   Track as MfTrack,
   MergedNote,
@@ -18,7 +17,7 @@ interface ITracks {
   include_track_relation: boolean;
 }
 
-export class GDUC {
+export class GBOC {
   tracks: ITracks = {
     tempo: undefined,
     main: undefined,
@@ -97,6 +96,7 @@ export class GDUC {
 
     // refine track_main
     let main_include_notes_number = [96, 97, 98, 99, 100];
+    // let relation_include_notes_number = [36, 37, 38, 39, 40];
     let relation_inclucde_notes_number = Array(6)
       .fill(0)
       .map((_, index) => index);
@@ -127,26 +127,26 @@ export class GDUC {
       //pid - position-id
       //|….1….3….5….|
       //|…..2...4…..|
-      let pid = "none";
-      if (n.number == 96) {
-        pid = "0";
-      }
+    let pid = "none";
+    if (n.number == 84) {
+      pid = "0";
+    }
 
-      if (n.number == 97) {
-        pid = "1";
-      }
+    if (n.number == 85) {
+      pid = "1";
+    }
 
-      if (n.number == 98) {
-        pid = "2";
-      }
+    if (n.number == 86) {
+      pid = "2";
+    }
 
-      if (n.number == 99) {
-        pid = "3";
-      }
+    if (n.number == 87) {
+      pid = "3";
+    }
 
-      if (n.number == 100) {
-        pid = "4";
-      }
+    if (n.number == 88) {
+      pid = "4";
+    }
 
       // moodchange
       let is_mc = "0";

@@ -1,4 +1,5 @@
 
+
 import {
   Track as MfTrack,
   MergedNote,
@@ -18,7 +19,7 @@ interface ITracks {
   include_track_relation: boolean;
 }
 
-export class GDUC {
+export class DR {
   tracks: ITracks = {
     tempo: undefined,
     main: undefined,
@@ -96,18 +97,17 @@ export class GDUC {
     let final_notes: MergedNote[];
 
     // refine track_main
-    let main_include_notes_number = [96, 97, 98, 99, 100];
+    let main_include_notes_number = [84, 85, 86, 96, 97, 98, 88, 100, 102];
     let relation_inclucde_notes_number = Array(6)
       .fill(0)
       .map((_, index) => index);
-
     final_notes = [...(this.tracks?.main?.notes ?? [])];
     let include_numbers = [...main_include_notes_number];
 
-    //if (bh.include_track_relation) {
-    //  final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
-    //  include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
-    //}
+    if (this.tracks.include_track_relation) {
+      final_notes = [...final_notes, ...(this.tracks?.relation?.notes ?? [])];
+      include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
+    }
 
     final_notes = final_notes
       .filter((n) => include_numbers.includes(n.number))
@@ -118,106 +118,38 @@ export class GDUC {
     console.log("********************");
 
 
-    //--------------
-    // @bh/@output
-    //--------------
-    let mc_cnt = 0;
-    let output = final_notes.map((n, i) => {
-
-      //pid - position-id
-      //|….1….3….5….|
-      //|…..2...4…..|
-      let pid = "none";
-      if (n.number == 96) {
-        pid = "0";
-      }
-
-      if (n.number == 97) {
-        pid = "1";
-      }
-
-      if (n.number == 98) {
-        pid = "2";
-      }
-
-      if (n.number == 99) {
-        pid = "3";
-      }
-
-      if (n.number == 100) {
-        pid = "4";
-      }
-
-      // moodchange
-      let is_mc = "0";
-      if (this.tracks.include_track_relation) {
-
-        let found = this.tracks?.relation?.notes.some(
-          e => e.time_appear.ticks == n.time_appear.ticks
-        );
-        if (found) {
-          if (mc_cnt > 1) {
-            is_mc = "1";
-            // console.log(`note ${i}: has mood change`)
-          }
-          mc_cnt++;
-          pid = "2"; // tile-long is at middle
-        }
-      }
-
-      let id_str = `id:${i}`;
-      let n_str = `n:${n.number}`;
-      let pid_str = `pid:${pid}`;
-      let ta_str = `ta:${n.time_appear.secs}`;
-      let d_str = `d:${n.duration.secs}`;
-      let v_str = `v:${n.velocity}`;
-      let mc_str = `mc:${is_mc}`;
-      return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str].join("-");
-    });
-    this.total_notes = final_notes.length;
-
-    //----------------------------------------
-
-    if (this.cutter?.enabled) {
-      let tmp = final_notes.filter((n, i) => i >= this.cutter.note_start && i <=
-        this.cutter?.note_end)
-
-      this.total_notes = tmp.length;
-
-      output = tmp.map((n, i) => {
-        //pid
-        //|….1….3….5….|
-        //|…..2...4…..|
-        let pid = "none";
-        if (n.number == 96) {
-          pid = "0";
-        }
-
-        if (n.number == 97) {
-          pid = "1";
-        }
-
-        if (n.number == 98) {
-          pid = "2";
-        }
-
-        if (n.number == 99) {
-          pid = "3";
-        }
-
-        if (n.number == 100) {
-          pid = "4";
-        }
-
-        let id_str = `id:${i}`;
-        let n_str = `n:${n.number}`;
-        let pid_str = `pid:${pid}`;
-        let ta_str = `ta:${n.time_appear.secs - this.cutter.song_start_time}`;
-        let d_str = `d:${n.duration.secs}`;
-        let v_str = `v:${n.velocity}`;
-        return [id_str, n_str, pid_str, ta_str, d_str, v_str].join("-");
-      });
+  //----------
+  // @output
+  //----------
+  let output = final_notes.map((n, i) => {
+    //pid
+    let pid = "none";
+    if (n.number == 96 || n.number == 84) {
+      pid = "0";
     }
+
+    if (n.number == 97 || n.number == 85) {
+      pid = "1";
+    }
+
+    if (n.number == 98 || n.number == 86) {
+      pid = "2";
+    }
+
+    // temporary
+    // note 88 is diff color but moving
+    // note 100 is same color but moving
+    if (n.number == 88 || n.number == 100) {
+      pid = "1";
+    }
+
+    let id_str = `id:${i}`;
+    let n_str = `n:${n.number}`;
+    let pid_str = `pid:${pid}`;
+    let ta_str = `ta:${n.time_appear.secs}`;
+    let d_str = `d:${n.duration.secs}`;
+    return [id_str, n_str, pid_str, ta_str, d_str].join("-");
+  });
     return output.join(",");
   }
 }

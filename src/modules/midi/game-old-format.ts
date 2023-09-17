@@ -1,4 +1,5 @@
 
+
 import {
   Track as MfTrack,
   MergedNote,
@@ -18,7 +19,7 @@ interface ITracks {
   include_track_relation: boolean;
 }
 
-export class GDUC {
+export class GameOldFormat {
   tracks: ITracks = {
     tempo: undefined,
     main: undefined,
