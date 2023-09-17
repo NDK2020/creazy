@@ -5,7 +5,7 @@
 
 
       <a-upload-dragger v-model:fileList="file_list" :multiple="false" @change="on_change_file" @drop="on_drop_file"
-        :before-upload="on_select_file">
+        :before-upload="on_select_file" class="upload-dragger">
 
         <a-button type="primary" @click="{ }" class="button flex-y-center">
           <div class="flex-center gap-8 w-full h-full">
@@ -192,7 +192,7 @@ const on_change_file = (info: UploadChangeParam) => {
 }
 
 const on_drop_file = (ev: DragEvent) => {
-  console.log(ev);
+  // console.log(ev);
   // ev.preventDefault();
   // console.log("drop a file");
   // if (ev.dataTransfer?.items) {
@@ -386,13 +386,21 @@ const test_2phuthon = (notes: MergedNote[]) => {
 
 <style lang="scss">
 .midi-reader {
-  .button {
-    &.ant-btn {
-      height: 40px;
-      padding: 28px 30px;
-      margin: 20px auto;
+  .upload-dragger {
+    background: inherit;
+
+    .ant-upload {
+      padding: 16px;
+    }
+
+    .button {
+      &.ant-btn {
+        height: 40px;
+        padding: 28px 30px;
+      }
     }
   }
+
 
   .mt3-reader__icon {
     font-size: 40px;
