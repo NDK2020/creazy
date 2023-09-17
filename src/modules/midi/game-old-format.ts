@@ -55,24 +55,22 @@ export class GameOldFormat {
         .find((n) => n.text == "main");
     });
 
+
     let track_main = track_mains.find((track) => {
       let notes = track.filter(is_note_event).map((e) => e as NoteEvent);
       return notes.length > 0;
     });
 
+    if (track_main == undefined) {
+      // find first track that has note
+      track_main = midi.tracks.find((track) => {
+         return track.some(is_note_event);
+      })
+    } 
+
     // console.log("track main");
     // console.log(track_main);
     // console.log("********************");
-
-    let track_relation = midi.tracks.find((track_events) => {
-      return track_events
-        .filter(is_track_name_event)
-        .find((n) => n.text == "relation");
-    });
-    // console.log("track relation");
-    // console.log(track_relation);
-    // console.log("********************");
-
 
     //--------------
     // @track-main
@@ -80,15 +78,6 @@ export class GameOldFormat {
     this.tracks.main = new MfTrack(midi.header, track_tempo, "main");
     this.tracks.main.get_data_basic(track_main);
 
-    //------------------
-    // @track-relation
-    //------------------
-    this.tracks.relation = new MfTrack(midi.header, track_tempo, "relation");
-    this.tracks.relation.get_data_basic(track_relation);
-
-
-    //----------------------------------------
-    this.cutter.enabled = enabled_cutter;
   }
 
 
@@ -119,106 +108,28 @@ export class GameOldFormat {
     console.log("********************");
 
 
-    //--------------
-    // @bh/@output
-    //--------------
-    let mc_cnt = 0;
-    let output = final_notes.map((n, i) => {
+    //------------
+    // @/@output
+    //------------
+    let output = new Array<string>(0);
+    for(let i = 0; i < final_notes.length; i++) {
 
-      //pid - position-id
-      //|….1….3….5….|
-      //|…..2...4…..|
-      let pid = "none";
-      if (n.number == 96) {
-        pid = "0";
+      if (i == 0) {
+        output.push((final_notes[i].time_appear.secs - 0).toString());
       }
 
-      if (n.number == 97) {
-        pid = "1";
+      if (i > 0) {
+        let v = final_notes[i].time_appear.secs - final_notes[i-1].time_appear.secs;
+        output.push(v.toString());
       }
 
-      if (n.number == 98) {
-        pid = "2";
-      }
+    }
 
-      if (n.number == 99) {
-        pid = "3";
-      }
-
-      if (n.number == 100) {
-        pid = "4";
-      }
-
-      // moodchange
-      let is_mc = "0";
-      if (this.tracks.include_track_relation) {
-
-        let found = this.tracks?.relation?.notes.some(
-          e => e.time_appear.ticks == n.time_appear.ticks
-        );
-        if (found) {
-          if (mc_cnt > 1) {
-            is_mc = "1";
-            // console.log(`note ${i}: has mood change`)
-          }
-          mc_cnt++;
-          pid = "2"; // tile-long is at middle
-        }
-      }
-
-      let id_str = `id:${i}`;
-      let n_str = `n:${n.number}`;
-      let pid_str = `pid:${pid}`;
-      let ta_str = `ta:${n.time_appear.secs}`;
-      let d_str = `d:${n.duration.secs}`;
-      let v_str = `v:${n.velocity}`;
-      let mc_str = `mc:${is_mc}`;
-      return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str].join("-");
-    });
     this.total_notes = final_notes.length;
 
     //----------------------------------------
+    output = Array.from(new Set(output));
 
-    if (this.cutter?.enabled) {
-      let tmp = final_notes.filter((n, i) => i >= this.cutter.note_start && i <=
-        this.cutter?.note_end)
-
-      this.total_notes = tmp.length;
-
-      output = tmp.map((n, i) => {
-        //pid
-        //|….1….3….5….|
-        //|…..2...4…..|
-        let pid = "none";
-        if (n.number == 96) {
-          pid = "0";
-        }
-
-        if (n.number == 97) {
-          pid = "1";
-        }
-
-        if (n.number == 98) {
-          pid = "2";
-        }
-
-        if (n.number == 99) {
-          pid = "3";
-        }
-
-        if (n.number == 100) {
-          pid = "4";
-        }
-
-        let id_str = `id:${i}`;
-        let n_str = `n:${n.number}`;
-        let pid_str = `pid:${pid}`;
-        let ta_str = `ta:${n.time_appear.secs - this.cutter.song_start_time}`;
-        let d_str = `d:${n.duration.secs}`;
-        let v_str = `v:${n.velocity}`;
-        return [id_str, n_str, pid_str, ta_str, d_str, v_str].join("-");
-      });
-    }
     return output.join(",");
   }
 }

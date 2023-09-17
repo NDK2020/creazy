@@ -4,8 +4,9 @@
       <dropdown-games @dropdown-select="on_dropdown_select" />
 
 
-      <a-upload-dragger :file-list="file_list" :multiple="false"
+      <a-upload-dragger v-model:fileList="file_list" :multiple="false"
         @change="on_change_file"
+        @drop="on_drop_file"
         :before-upload="on_select_file">
 
         <a-button type="primary" @click="{ }" class="button flex-y-center">
@@ -89,7 +90,11 @@ GameOldFormat
 //---------------
 // @import-antd
 //---------------
-import { notification, UploadChangeParam, UploadProps } from "ant-design-vue";
+import {
+  notification,
+  UploadChangeParam,
+  UploadProps,
+} from "ant-design-vue";
 
 //-----------
 // @cutsong
@@ -138,12 +143,12 @@ const on_select_file:UploadProps['beforeUpload'] = async (file) => {
 
   const reader = new FileReader()
 
-  reader.onload = e => {
+  reader.onload = async e => {
     const buf = e.target?.result as ArrayBuffer
     midi_file.value = read(buf)
   }
 
-  reader.readAsArrayBuffer(file)
+  await reader.readAsArrayBuffer(file)
 
   switch (game_id.value) {
     case "-1":
@@ -180,6 +185,15 @@ const on_select_file:UploadProps['beforeUpload'] = async (file) => {
 
 const on_change_file = (info: UploadChangeParam) => {
   file_info.name = info.file.name;
+}
+
+const on_drop_file = (ev: DragEvent) => {
+  console.log(ev);
+  // ev.preventDefault();
+  // console.log("drop a file");
+  // if (ev.dataTransfer?.items) {
+  //   console.log("drop a file");
+  // }
 }
 
 const is_show_relation_toggle = () => {
