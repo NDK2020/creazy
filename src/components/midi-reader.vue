@@ -3,12 +3,17 @@
     <div class="flex-end gap-12">
       <dropdown-games @dropdown-select="on_dropdown_select" />
 
-      <a-button type="primary" @click="on_select_file" class="button flex-y-center">
-        <div class="flex-center gap-8 w-full h-full">
-          <Icon icon="solar:upload-track-2-bold" class="mt3-reader__icon" />
-          <Icon icon="simple-icons:midi" class="mt3-reader__icon" />
-        </div>
-      </a-button>
+
+      <a-upload-dragger :file-list="file_list" :multiple="false"
+        :before-upload="on_select_file">
+
+        <a-button type="primary" @click="{ }" class="button flex-y-center">
+          <div class="flex-center gap-8 w-full h-full">
+            <Icon icon="solar:upload-track-2-bold" class="mt3-reader__icon" />
+            <Icon icon="simple-icons:midi" class="mt3-reader__icon" />
+          </div>
+        </a-button>
+      </a-upload-dragger>
 
       <a-switch v-if="game_id == 'dr'" v-model:checked="dr.include_track_relation"
         checked-children="include-track-relation" un-checked-children="include-track-relation" />
@@ -54,12 +59,12 @@
 </template>
 
 <script setup lang="ts">
-//---------
-// @tauri
-//---------
-import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/dialog";
-import { readBinaryFile } from "@tauri-apps/api/fs";
+//---------------
+// @import-tauri
+//---------------
+// import { invoke } from "@tauri-apps/api/tauri";
+// import { open } from "@tauri-apps/api/dialog";
+// import { readBinaryFile } from "@tauri-apps/api/fs";
 
 //
 import { Icon } from "@iconify/vue";
@@ -74,16 +79,13 @@ import {
   is_set_tempo_event,
   is_track_name_event,
   is_note_event,
-NoteEvent
+  NoteEvent
 } from "@/modules/midi";
 
-//--------
-// @antd
-//--------
-//-----------
-// @antd-ui
-//-----------
-import { notification } from "ant-design-vue";
+//---------------
+// @import-antd
+//---------------
+import { notification, UploadChangeParam, UploadProps } from "ant-design-vue";
 
 //-----------
 // @cutsong
@@ -139,79 +141,96 @@ const on_dropdown_select = (key: string) => {
 
 // https://github.com/ryohey/midifile-ts
 
-const on_select_file = async () => {
-  switch (game_id.value) {
-    case "-1":
-      get_data_from_back_end();
-      break;
-    case "bh":
-      get_bh_data();
-      break;
-    case "dr":
-      get_dr_data();
-      break;
-    case "gduc":
-      get_data_from_back_end();
-      break;
-    case "pi":
-      notification["error"]({
-        message: "No support!!!!",
-        description: "this game is not supported yet",
-        duration: 1.6,
-      });
-      break;
-    default:
-      // get_data_from_front_end();
-      get_dr_data();
-      notification["error"]({
-        message: "No game selected",
-        description: "Please select game at dropdown button",
-        duration: 1.6,
-      });
-      break;
+
+const on_select_file:UploadProps['beforeUpload'] = file => {
+
+  // const status = info.file.status;
+  //
+  // let file = file_list.value[0];
+  // console.log(info.file);
+  const reader = new FileReader()
+  reader.onload = (res) => {
+    console.log(res.target?.result);
   }
+  reader.readAsText(file);
+  return false;
+
+  // console.log(status);
+  // console.log(info.fileList[0]);
+  // file_list.value = 
+
+  // switch (game_id.value) {
+  //   case "-1":
+  //     get_data_from_back_end();
+  //     break;
+  //   case "bh":
+  //     get_bh_data();
+  //     break;
+  //   case "dr":
+  //     get_dr_data();
+  //     break;
+  //   case "gduc":
+  //     get_data_from_back_end();
+  //     break;
+  //   case "pi":
+  //     notification["error"]({
+  //       message: "No support!!!!",
+  //       description: "this game is not supported yet",
+  //       duration: 1.6,
+  //     });
+  //     break;
+  //   default:
+  //     // get_data_from_front_end();
+  //     get_dr_data();
+  //     notification["error"]({
+  //       message: "No game selected",
+  //       description: "Please select game at dropdown button",
+  //       duration: 1.6,
+  //     });
+  //     break;
+  // }
 };
 
 const get_data_from_back_end = async () => {
-  const f = await open();
-  console.log("read midi file: " + f);
-
-  invoke("read_midi", { filePathStr: f }).then((res) => {
-    if (res) {
-      let track = res as Track;
-      console.log(track);
-
-      midi_info.name = typeof f == "string" ? f.replace(/^.*[\\\/]/, "") : "";
-      midi_info.num_of_notes = track.timespans.length.toString();
-      midi_info.timespan_min = Math.min(...track.timespans).toString();
-      midi_info.timespan_max = Math.max(...track.timespans).toString();
-      midi_info.raw_str = track.raw_str_vec.join(",");
-      song_info.value = `
-name: ${midi_info.name}
-num-of-notes: ${midi_info.num_of_notes}
-timespan(min - max) value: 
-${midi_info.timespan_min} - ${midi_info.timespan_max}
---------------------
-num-of-notes-on: ${track.notes_on.length}
-num-of-notes-on-velocity-zero: ${track.notes_on_velocity_zero.length}
-num-of-notes-off: ${track.notes_off.length}
-`;
-
-      switch (game_id.value) {
-        case "-1":
-          midi_info.output_str = track.timespans
-            .map((t) => t.toString())
-            .join(",");
-          break;
-        case "gduc":
-          midi_info.output_str = midi_info.raw_str;
-          break;
-        default:
-          midi_info.output_str = "";
-          break;
-      }
-    }
-  });
+  //   const f = await open();
+  //   console.log("read midi file: " + f);
+  //
+  //   invoke("read_midi", { filePathStr: f }).then((res) => {
+  //     if (res) {
+  //       let track = res as Track;
+  //       console.log(track);
+  //
+  //       midi_info.name = typeof f == "string" ? f.replace(/^.*[\\\/]/, "") : "";
+  //       midi_info.num_of_notes = track.timespans.length.toString();
+  //       midi_info.timespan_min = Math.min(...track.timespans).toString();
+  //       midi_info.timespan_max = Math.max(...track.timespans).toString();
+  //       midi_info.raw_str = track.raw_str_vec.join(",");
+  //       song_info.value = `
+  // name: ${midi_info.name}
+  // num-of-notes: ${midi_info.num_of_notes}
+  // timespan(min - max) value: 
+  // ${midi_info.timespan_min} - ${midi_info.timespan_max}
+  // --------------------
+  // num-of-notes-on: ${track.notes_on.length}
+  // num-of-notes-on-velocity-zero: ${track.notes_on_velocity_zero.length}
+  // num-of-notes-off: ${track.notes_off.length}
+  // `;
+  //
+  //       switch (game_id.value) {
+  //         case "-1":
+  //           midi_info.output_str = track.timespans
+  //             .map((t) => t.toString())
+  //             .join(",");
+  //           break;
+  //         case "gduc":
+  //           midi_info.output_str = midi_info.raw_str;
+  //           break;
+  //         default:
+  //           midi_info.output_str = "";
+  //           break;
+  //       }
+  //     }
+  //   });
 };
 
 //-----------------
@@ -247,10 +266,6 @@ const get_bh_data = async () => {
   final_notes = [...(bh?.track_main?.notes ?? [])];
   let include_numbers = [...main_include_notes_number];
 
-  //if (bh.include_track_relation) {
-  //  final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
-  //  include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
-  //}
 
   final_notes = final_notes
     .filter((n) => include_numbers.includes(n.number))
@@ -258,7 +273,7 @@ const get_bh_data = async () => {
 
   console.log("final_notes");
   console.log(final_notes);
-    console.log("********************");
+  console.log("********************");
 
 
   //--------------
@@ -292,7 +307,7 @@ const get_bh_data = async () => {
     }
 
     // moodchange
-    let is_mc = "0"; 
+    let is_mc = "0";
     if (bh.include_track_relation) {
 
       let found = bh?.track_relation?.notes.some(
@@ -305,7 +320,7 @@ const get_bh_data = async () => {
         }
         mc_cnt++;
         pid = "2"; // tile-long is at middle
-      } 
+      }
     }
 
     let id_str = `id:${i}`;
@@ -322,7 +337,7 @@ const get_bh_data = async () => {
 
   if (cutter.enabled) {
     let tmp = final_notes.filter((n, i) => i >= cutter.note_start && i <=
-              cutter.note_end)
+      cutter.note_end)
 
     output = tmp.map((n, i) => {
       //pid
@@ -545,60 +560,60 @@ num-of-notes: ${final_notes.length}
 
 const get_data_from_front_end = async () => {
   try {
-    const path = await open({
-      multiple: false,
-      title: "Open .mid/.midi file",
-    });
+    // const path = await open({
+    //   multiple: false,
+    //   title: "Open .mid/.midi file",
+    // });
+    // //
+    // file_path.value = path as string;
+    // const file = await readBinaryFile(path as string);
+    // const buf = Uint8Array2ArrayBuffer(file);
+    // const midi = midi_read(buf);
+    // //
+    // let track_tempo = midi.tracks.find((track_events) =>
+    //   track_events.find(is_set_tempo_event)
+    // );
     //
-    file_path.value = path as string;
-    const file = await readBinaryFile(path as string);
-    const buf = Uint8Array2ArrayBuffer(file);
-    const midi = midi_read(buf);
+    // console.log("midi data");
+    // console.log(midi);
+    // console.log("********************");
     //
-    let track_tempo = midi.tracks.find((track_events) =>
-      track_events.find(is_set_tempo_event)
-    );
-
-    console.log("midi data");
-    console.log(midi);
-    console.log("********************");
-
-    let track_mains = midi.tracks.filter((track_events) => {
-      return track_events
-        .filter(is_track_name_event)
-        .find((n) => n.text == "main");
-    });
-
-    let track_main = track_mains.find((track) => {
-      let notes = track.filter(is_note_event).map((e) => e as NoteEvent);
-      return notes.length > 0;
-    });
-
-    console.log("track main");
-    console.log(track_main);
-    console.log("********************");
-
-    let track_relation = midi.tracks.find((track_events) => {
-      return track_events
-        .filter(is_track_name_event)
-        .find((n) => n.text == "relation");
-    });
-    console.log("track relation");
-    console.log(track_relation);
-    console.log("********************");
-
-    //--------------
-    // @track-main
-    //--------------
-    tracks.main = new MfTrack(midi.header, track_tempo, "main");
-    tracks.main.get_data_basic(track_main);
-
-    //------------------
-    // @track-relation
-    //------------------
-    tracks.relation = new MfTrack(midi.header, track_tempo, "relation");
-    tracks.relation.get_data_basic(track_relation);
-
+    // let track_mains = midi.tracks.filter((track_events) => {
+    //   return track_events
+    //     .filter(is_track_name_event)
+    //     .find((n) => n.text == "main");
+    // });
+    //
+    // let track_main = track_mains.find((track) => {
+    //   let notes = track.filter(is_note_event).map((e) => e as NoteEvent);
+    //   return notes.length > 0;
+    // });
+    //
+    // console.log("track main");
+    // console.log(track_main);
+    // console.log("********************");
+    //
+    // let track_relation = midi.tracks.find((track_events) => {
+    //   return track_events
+    //     .filter(is_track_name_event)
+    //     .find((n) => n.text == "relation");
+    // });
+    // console.log("track relation");
+    // console.log(track_relation);
+    // console.log("********************");
+    //
+    // //--------------
+    // // @track-main
+    // //--------------
+    // tracks.main = new MfTrack(midi.header, track_tempo, "main");
+    // tracks.main.get_data_basic(track_main);
+    //
+    // //------------------
+    // // @track-relation
+    // //------------------
+    // tracks.relation = new MfTrack(midi.header, track_tempo, "relation");
+    // tracks.relation.get_data_basic(track_relation);
+    //
   } catch (err) {
     console.log(err);
   }
