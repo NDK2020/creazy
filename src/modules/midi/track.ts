@@ -246,7 +246,7 @@ export const is_set_tempo_event = (ev: AnyEvent): ev is SetTempoEvent =>
 const is_any_meta_event = (ev: AnyEvent): ev is AnyMetaEvent =>
   ev.type === "meta";
 
-const is_note_event = (ev: AnyEvent): ev is NoteEvent =>
+export const is_note_event = (ev: AnyEvent): ev is NoteEvent =>
   is_any_channel_event(ev) &&
   (ev.subtype === "noteOn" || ev.subtype === "noteOff");
 
@@ -265,4 +265,4 @@ const is_controller_event = (ev: AnyEvent): ev is ControllerEvent =>
 const is_any_channel_event = (ev: AnyEvent): ev is AnyChannelEvent =>
   ev.type === "channel";
 
-type NoteEvent = NoteOnEvent | NoteOffEvent;
+export type NoteEvent = NoteOnEvent | NoteOffEvent;

@@ -12,6 +12,9 @@
 
       <a-switch v-if="game_id == 'dr'" v-model:checked="dr.include_track_relation"
         checked-children="include-track-relation" un-checked-children="include-track-relation" />
+
+      <a-switch v-if="game_id == 'bh'" v-model:checked="bh.include_track_relation"
+        checked-children="include-track-relation" un-checked-children="include-track-relation" />
     </div>
 
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
@@ -70,6 +73,8 @@ import {
   MergedNote,
   is_set_tempo_event,
   is_track_name_event,
+  is_note_event,
+NoteEvent
 } from "@/modules/midi";
 
 //--------
@@ -84,7 +89,7 @@ import { notification } from "ant-design-vue";
 // @cutsong
 //-----------
 const cutter = reactive({
-  enabled: true,
+  enabled: false,
   note_start: 0,
   note_end: 0,
   song_start_time: 0,
@@ -242,22 +247,27 @@ const get_bh_data = async () => {
   final_notes = [...(bh?.track_main?.notes ?? [])];
   let include_numbers = [...main_include_notes_number];
 
-  if (bh.include_track_relation) {
-    final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
-    include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
-  }
+  //if (bh.include_track_relation) {
+  //  final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
+  //  include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
+  //}
 
   final_notes = final_notes
     .filter((n) => include_numbers.includes(n.number))
     .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
 
+  console.log("final_notes");
   console.log(final_notes);
+    console.log("********************");
+
 
   //--------------
   // @bh/@output
   //--------------
+  let mc_cnt = 0;
   let output = final_notes.map((n, i) => {
-    //pid
+
+    //pid - position-id
     //|….1….3….5….|
     //|…..2...4…..|
     let pid = "none";
@@ -281,13 +291,31 @@ const get_bh_data = async () => {
       pid = "4";
     }
 
+    // moodchange
+    let is_mc = "0"; 
+    if (bh.include_track_relation) {
+
+      let found = bh?.track_relation?.notes.some(
+        e => e.time_appear.ticks == n.time_appear.ticks
+      );
+      if (found) {
+        if (mc_cnt > 1) {
+          is_mc = "1";
+          console.log(`note ${i}: has mood change`)
+        }
+        mc_cnt++;
+        pid = "2"; // tile-long is at middle
+      } 
+    }
+
     let id_str = `id:${i}`;
     let n_str = `n:${n.number}`;
     let pid_str = `pid:${pid}`;
     let ta_str = `ta:${n.time_appear.secs}`;
     let d_str = `d:${n.duration.secs}`;
     let v_str = `v:${n.velocity}`;
-    return [id_str, n_str, pid_str, ta_str, d_str, v_str].join("-");
+    let mc_str = `mc:${is_mc}`;
+    return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str].join("-");
   });
 
   //----------------------------------------
@@ -531,17 +559,33 @@ const get_data_from_front_end = async () => {
       track_events.find(is_set_tempo_event)
     );
 
-    let track_main = midi.tracks.find((track_events) => {
+    console.log("midi data");
+    console.log(midi);
+    console.log("********************");
+
+    let track_mains = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
         .find((n) => n.text == "main");
     });
+
+    let track_main = track_mains.find((track) => {
+      let notes = track.filter(is_note_event).map((e) => e as NoteEvent);
+      return notes.length > 0;
+    });
+
+    console.log("track main");
+    console.log(track_main);
+    console.log("********************");
 
     let track_relation = midi.tracks.find((track_events) => {
       return track_events
         .filter(is_track_name_event)
         .find((n) => n.text == "relation");
     });
+    console.log("track relation");
+    console.log(track_relation);
+    console.log("********************");
 
     //--------------
     // @track-main
@@ -555,8 +599,6 @@ const get_data_from_front_end = async () => {
     tracks.relation = new MfTrack(midi.header, track_tempo, "relation");
     tracks.relation.get_data_basic(track_relation);
 
-    console.log("midi data");
-    console.log(midi);
   } catch (err) {
     console.log(err);
   }
