@@ -128,8 +128,6 @@ export class GameOldFormat {
 
     this.total_notes = final_notes.length;
 
-    //----------------------------------------
-    output = Array.from(new Set(output));
 
     return output.join(",");
   }
