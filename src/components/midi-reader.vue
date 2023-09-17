@@ -4,9 +4,7 @@
       <dropdown-games @dropdown-select="on_dropdown_select" />
 
 
-      <a-upload-dragger v-model:fileList="file_list" :multiple="false"
-        @change="on_change_file"
-        @drop="on_drop_file"
+      <a-upload-dragger v-model:fileList="file_list" :multiple="false" @change="on_change_file" @drop="on_drop_file"
         :before-upload="on_select_file">
 
         <a-button type="primary" @click="{ }" class="button flex-y-center">
@@ -17,8 +15,8 @@
         </a-button>
       </a-upload-dragger>
 
-      <a-switch v-if="is_show_relation_toggle()" v-model:checked="has_relation"
-        checked-children="include-track-relation" un-checked-children="include-track-relation" />
+      <a-switch v-if="is_show_relation_toggle()" v-model:checked="has_relation" checked-children="include-track-relation"
+        un-checked-children="include-track-relation" />
 
     </div>
 
@@ -80,11 +78,11 @@ import {
   is_track_name_event,
   is_note_event,
   NoteEvent,
-BH,
-GBOC,
-DR,
-GDUC,
-GameOldFormat
+  BH,
+  GBOC,
+  DR,
+  GDUC,
+  GameOldFormat
 } from "@/modules/midi";
 
 //---------------
@@ -139,8 +137,45 @@ const on_dropdown_select = (key: string) => {
 
 const midi_file = ref<MidiFile>();
 const file_list = ref([]);
-const on_select_file:UploadProps['beforeUpload'] = async (file) => {
 
+watch(midi_file, () => {
+  if (midi_file.value) {
+    console.log(midi_file.value);
+    switch (game_id.value) {
+      case "-1":
+        get_old_data();
+        break;
+      case "bh":
+        get_bh_data();
+        break;
+      case "dr":
+        get_dr_data();
+        break;
+      case "gduc":
+        get_gduc_data();
+        break;
+      // case "pi":
+      //   notification["error"]({
+      //     message: "No support!!!!",
+      //     description: "this game is not supported yet",
+      //     duration: 1.6,
+      //   });
+      //   break;
+      default:
+        // get_data_from_front_end();
+        get_dr_data();
+        notification["error"]({
+          message: "No game selected",
+          description: "Please select game at dropdown button",
+          duration: 1.6,
+        });
+        break;
+    }
+  }
+})
+const on_select_file: UploadProps['beforeUpload'] = async (file) => {
+
+  midi_file.value = undefined;
   const reader = new FileReader()
 
   reader.onload = async e => {
@@ -149,37 +184,6 @@ const on_select_file:UploadProps['beforeUpload'] = async (file) => {
   }
 
   await reader.readAsArrayBuffer(file)
-
-  switch (game_id.value) {
-    case "-1":
-      get_old_data();
-      break;
-    case "bh":
-      get_bh_data();
-      break;
-    case "dr":
-      get_dr_data();
-      break;
-    case "gduc":
-      get_gduc_data();
-      break;
-    // case "pi":
-    //   notification["error"]({
-    //     message: "No support!!!!",
-    //     description: "this game is not supported yet",
-    //     duration: 1.6,
-    //   });
-    //   break;
-    default:
-      // get_data_from_front_end();
-      get_dr_data();
-      notification["error"]({
-        message: "No game selected",
-        description: "Please select game at dropdown button",
-        duration: 1.6,
-      });
-      break;
-  }
   return false;
 };
 
@@ -302,13 +306,13 @@ const get_data_from_front_end = async () => {
     // const buf = Uint8Array2ArrayBuffer(file);
     // const midi = midi_read(buf);
     //
-//   song_info.value = `
-// name: ${typeof file_path.value == "string"
-//       ? file_path.value.replace(/^.*[\\\/]/, "")
-//       : ""
-//     }
-// num-of-notes: ${bh.value?.total_notes}
-// `;
+    //   song_info.value = `
+    // name: ${typeof file_path.value == "string"
+    //       ? file_path.value.replace(/^.*[\\\/]/, "")
+    //       : ""
+    //     }
+    // num-of-notes: ${bh.value?.total_notes}
+    // `;
   } catch (err) {
     console.log(err);
   }
