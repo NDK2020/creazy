@@ -94,14 +94,13 @@ export class GameOldFormat {
     final_notes = [...(this.tracks?.main?.notes ?? [])];
     let include_numbers = [...main_include_notes_number];
 
-    //if (bh.include_track_relation) {
-    //  final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
-    //  include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
-    //}
 
+    //remove duplicate time_appear note
+    const all_ta = final_notes.map(({time_appear}) => time_appear);
     final_notes = final_notes
-      .filter((n) => include_numbers.includes(n.number))
+      // .filter((n) => include_numbers.includes(n.number))
       .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
+
 
     console.log("final_notes");
     console.log(final_notes);
@@ -111,6 +110,7 @@ export class GameOldFormat {
     //------------
     // @/@output
     //------------
+
     let output = new Array<string>(0);
     for(let i = 0; i < final_notes.length; i++) {
 
