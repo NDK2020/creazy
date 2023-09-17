@@ -96,8 +96,9 @@ export class GameOldFormat {
 
 
     //remove duplicate time_appear note
-    const all_ta = final_notes.map(({time_appear}) => time_appear);
+    const all_tas = final_notes.map(({time_appear: {ticks}}) => ticks);
     final_notes = final_notes
+      .filter(({time_appear: {ticks}}, i) => !all_tas.includes(ticks, i+1 ))
       // .filter((n) => include_numbers.includes(n.number))
       .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
 
