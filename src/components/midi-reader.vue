@@ -26,12 +26,12 @@
     <a-space direction="vertical" class="m-12">
       <a-switch v-model:checked="cutter.enabled" checked-children="cutter-off" un-checked-children="cutter-on" />
       <a-space>
-        note-on:
+        note-start:
         <a-input-number v-model:value="cutter.note_start" :min="0" :max="10000" />
       </a-space>
 
       <a-space>
-        note-off:
+        note-end:
         <a-input-number v-model:value="cutter.note_end" :min="0" :max="10000" />
       </a-space>
 
@@ -162,8 +162,6 @@ watch(midi_file, () => {
       //   });
       //   break;
       default:
-        // get_data_from_front_end();
-        get_dr_data();
         notification["error"]({
           message: "No game selected",
           description: "Please select game at dropdown button",
@@ -266,7 +264,12 @@ const get_gduc_data = async () => {
     gduc.value = new GDUC(midi_file.value);
   }
 
-  midi_info.output_str = gduc.value?.get_output() || "";
+  midi_info.output_str = gduc.value?.get_output(
+    cutter.enabled,
+    cutter.note_start,
+    cutter.note_end,
+    cutter.song_start_time
+  ) || "";
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gduc.value?.total_notes}
