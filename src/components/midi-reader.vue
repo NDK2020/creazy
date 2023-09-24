@@ -3,11 +3,12 @@
     <div class="flex-end gap-12">
       <dropdown-games @dropdown-select="on_dropdown_select" />
 
-
       <a-upload-dragger v-model:fileList="file_list" :multiple="false" @change="on_change_file" @drop="on_drop_file"
         :before-upload="on_select_file" class="upload-dragger">
-
-        <a-button type="primary" @click="{ }" class="button flex-y-center">
+        <a-button type="primary" @click="
+                    {
+        }
+          " class="button flex-y-center">
           <div class="flex-center gap-8 w-full h-full">
             <Icon icon="solar:upload-track-2-bold" class="mt3-reader__icon" />
             <Icon icon="simple-icons:midi" class="mt3-reader__icon" />
@@ -17,7 +18,6 @@
 
       <a-switch v-if="is_show_relation_toggle()" v-model:checked="has_relation" checked-children="include-track-relation"
         un-checked-children="include-track-relation" />
-
     </div>
 
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
@@ -82,17 +82,14 @@ import {
   GBOC,
   DR,
   GDUC,
-  GameOldFormat
+  GameOldFormat,
 } from "@/modules/midi";
 
 //---------------
 // @import-antd
 //---------------
-import {
-  notification,
-  UploadChangeParam,
-  UploadProps,
-} from "ant-design-vue";
+import { notification, UploadChangeParam, UploadProps } from "ant-design-vue";
+import { GDUF } from "@/modules/midi/gduf";
 
 //-----------
 // @cutsong
@@ -113,8 +110,8 @@ const has_relation = ref(false);
 
 const file_info = reactive({
   path: "",
-  name: ""
-})
+  name: "",
+});
 
 const midi_info = reactive({
   ids: "",
@@ -133,7 +130,6 @@ const on_dropdown_select = (key: string) => {
 };
 
 // https://github.com/ryohey/midifile-ts
-
 
 const midi_file = ref<MidiFile>();
 const file_list = ref([]);
@@ -154,6 +150,9 @@ watch(midi_file, () => {
       case "gduc":
         get_gduc_data();
         break;
+      case "gduf":
+        get_gduf_data();
+        break;
       // case "pi":
       //   notification["error"]({
       //     message: "No support!!!!",
@@ -170,24 +169,23 @@ watch(midi_file, () => {
         break;
     }
   }
-})
-const on_select_file: UploadProps['beforeUpload'] = async (file) => {
-
+});
+const on_select_file: UploadProps["beforeUpload"] = async (file) => {
   midi_file.value = undefined;
-  const reader = new FileReader()
+  const reader = new FileReader();
 
-  reader.onload = async e => {
-    const buf = e.target?.result as ArrayBuffer
-    midi_file.value = read(buf)
-  }
+  reader.onload = async (e) => {
+    const buf = e.target?.result as ArrayBuffer;
+    midi_file.value = read(buf);
+  };
 
-  await reader.readAsArrayBuffer(file)
+  await reader.readAsArrayBuffer(file);
   return false;
 };
 
 const on_change_file = (info: UploadChangeParam) => {
   file_info.name = info.file.name;
-}
+};
 
 const on_drop_file = (ev: DragEvent) => {
   // console.log(ev);
@@ -196,13 +194,12 @@ const on_drop_file = (ev: DragEvent) => {
   // if (ev.dataTransfer?.items) {
   //   console.log("drop a file");
   // }
-}
+};
 
 const is_show_relation_toggle = () => {
   let list = ["bh", "dr", "gboc"];
-  return list.some(e => e === game_id.value)
-}
-
+  return list.some((e) => e === game_id.value);
+};
 
 //-----------------
 // @bh/@tiles-hop
@@ -254,9 +251,9 @@ const get_gboc_data = async () => {
   `;
 };
 
-//----------------------
-// @gboc/@bouncing-cat
-//----------------------
+//-------------------
+// @gduc/@duet-cats
+//-------------------
 const gduc = ref<GDUC>();
 
 const get_gduc_data = async () => {
@@ -264,15 +261,39 @@ const get_gduc_data = async () => {
     gduc.value = new GDUC(midi_file.value);
   }
 
-  midi_info.output_str = gduc.value?.get_output(
-    cutter.enabled,
-    cutter.note_start,
-    cutter.note_end,
-    cutter.song_start_time
-  ) || "";
+  midi_info.output_str =
+    gduc.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gduc.value?.total_notes}
+  `;
+};
+
+//-------------------
+// @gduf/@duet-cats
+//-------------------
+const gduf = ref<GDUF>();
+
+const get_gduf_data = async () => {
+  if (midi_file.value) {
+    gduf.value = new GDUF(midi_file.value);
+  }
+
+  midi_info.output_str =
+    gduf.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
+  song_info.value = `
+    name: ${file_info.name}
+    num-of-notes: ${gduf.value?.total_notes}
   `;
 };
 
@@ -338,7 +359,7 @@ const get_data_from_back_end = async () => {
   //       song_info.value = `
   // name: ${midi_info.name}
   // num-of-notes: ${midi_info.num_of_notes}
-  // timespan(min - max) value: 
+  // timespan(min - max) value:
   // ${midi_info.timespan_min} - ${midi_info.timespan_max}
   // --------------------
   // num-of-notes-on: ${track.notes_on.length}
@@ -403,7 +424,6 @@ const test_2phuthon = (notes: MergedNote[]) => {
       }
     }
   }
-
 
   .mt3-reader__icon {
     font-size: 40px;
