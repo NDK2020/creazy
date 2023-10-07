@@ -83,6 +83,7 @@ import {
   DR,
   GDUC,
   GameOldFormat,
+PI,
 } from "@/modules/midi";
 
 //---------------
@@ -153,13 +154,9 @@ watch(midi_file, () => {
       case "gduf":
         get_gduf_data();
         break;
-      // case "pi":
-      //   notification["error"]({
-      //     message: "No support!!!!",
-      //     description: "this game is not supported yet",
-      //     duration: 1.6,
-      //   });
-      //   break;
+      case "pi":
+        get_pi_data();
+        break;
       default:
         notification["error"]({
           message: "No game selected",
@@ -274,9 +271,9 @@ const get_gduc_data = async () => {
   `;
 };
 
-//-------------------
-// @gduf/@duet-cats
-//-------------------
+//----------------------
+// @gduf/@duet-friends
+//----------------------
 const gduf = ref<GDUF>();
 
 const get_gduf_data = async () => {
@@ -294,6 +291,29 @@ const get_gduf_data = async () => {
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gduf.value?.total_notes}
+  `;
+};
+
+//-------------------
+// @pi/magic-tiles
+//-------------------
+const pi = ref<PI>();
+
+const get_pi_data = async () => {
+  if (midi_file.value) {
+    pi.value = new PI(midi_file.value);
+  }
+
+  midi_info.output_str =
+    pi.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
+  song_info.value = `
+    name: ${file_info.name}
+    num-of-notes: ${pi.value?.total_notes}
   `;
 };
 

@@ -4,3 +4,4 @@ export * from "./dr";
 export * from "./gduc";
 export * from "./gboc";
 export * from "./game-old-format";
+export * from "./pi";
