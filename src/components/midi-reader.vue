@@ -205,7 +205,7 @@ const bh = ref<BH>();
 
 const get_bh_data = async () => {
   if (midi_file.value) {
-    bh.value = new BH(midi_file.value);
+    bh.value = new BH(midi_file.value, has_relation.value);
   }
 
   midi_info.output_str = bh.value?.get_output() || "";
@@ -221,7 +221,7 @@ const get_bh_data = async () => {
 const dr = ref<DR>();
 const get_dr_data = async () => {
   if (midi_file.value) {
-    dr.value = new DR(midi_file.value);
+    dr.value = new DR(midi_file.value, has_relation.value);
   }
 
   midi_info.output_str = dr.value?.get_output() || "";

@@ -38,7 +38,11 @@ export class BH {
   output_final = "";
   total_notes = 0;
 
-  constructor(midi: MidiFile, enabled_cutter = false) {
+  constructor(
+    midi: MidiFile,
+    include_track_relation = false,
+    enabled_cutter = false
+  ) {
 
     let track_tempo = midi.tracks.find((track_events) =>
       track_events.find(is_set_tempo_event)
@@ -88,6 +92,9 @@ export class BH {
 
     //----------------------------------------
     this.cutter.enabled = enabled_cutter;
+
+    //----------------------------------------
+    this.tracks.include_track_relation = include_track_relation;
   }
 
 

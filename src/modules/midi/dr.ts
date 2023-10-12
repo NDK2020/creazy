@@ -37,7 +37,11 @@ export class DR {
   output_final = "";
   total_notes = 0;
 
-  constructor(midi: MidiFile, enabled_cutter = false) {
+  constructor(
+    midi: MidiFile,
+    include_track_relation = false,
+    enabled_cutter = false
+  ) {
     let track_tempo = midi.tracks.find((track_events) =>
       track_events.find(is_set_tempo_event)
     );
@@ -84,6 +88,9 @@ export class DR {
 
     //----------------------------------------
     this.cutter.enabled = enabled_cutter;
+
+    //----------------------------------------
+    this.tracks.include_track_relation = include_track_relation;
   }
 
   get_output() {
@@ -135,8 +142,15 @@ export class DR {
       );
       if (tmp && tmp.length > 0) {
         cur_relation_note_number = tmp[0].number;
+        console.log(
+          "cur-relation-note-number init: " + cur_relation_note_number
+        );
       }
+
+      console.log("relation-notes: ");
+      console.log(tmp);
     }
+    let color_gate_time_appear = [-1];
 
     let output = final_notes.map((n, i, self) => {
       //pid
@@ -165,8 +179,10 @@ export class DR {
           ? self[i].time_appear.secs
           : self[i].time_appear.secs - self[i - 1].time_appear.secs;
 
-      // is color-gate and road break
+      // is color-gate, road break and disabled
       let is_cg = "0";
+      let is_rb = "0";
+      let is_dis = "0";
       if (this.tracks?.relation?.notes) {
         //
         let note_found = this.tracks.relation.notes.find((t) => {
@@ -174,12 +190,31 @@ export class DR {
         });
 
         if (note_found != null && note_found != undefined) {
-          if (is_cg_cnt > 1) {
-            is_cg = "1";
-          }
+          // if (is_cg_cnt > 1) {
+          //   is_cg = "1";
+          // }
           // color-gate-change is at middle
-          is_cg_cnt++;
+          // is_cg_cnt++;
+          if (!color_gate_time_appear.includes(n.time_appear.ticks)) {
+            is_cg = "1";
+            console.log("color-change-relation: " + note_found.number);
+            console.log("color-change-main: " + n.number);
+            console.log("color-change-time-appear: " + n.time_appear.ticks);
+          } else {
+            // disable duplicate note
+            is_dis="1";
+          }
           pid = "1";
+          color_gate_time_appear.push(n.time_appear.ticks);
+          //
+          if (cur_relation_note_number != note_found.number) {
+            is_rb = "1";
+            is_cg = "0" // either rb or cg
+            cur_relation_note_number = note_found.number;
+            // console.log("road break-relation: " + note_found.number);
+            // console.log("road break-main: " + n.number);
+            // console.log("road break-time-appear: " + n.time_appear.ticks);
+          }
         }
       }
 
@@ -191,6 +226,8 @@ export class DR {
       let v_str = `v:${n.velocity}`;
       let pid_str = `pid:${pid}`;
       let is_cg_str = `icg:${is_cg}`;
+      let is_rb_str = `irb:${is_rb}`;
+      let is_dis_str = `idis:${is_dis}`; // is disabled
       return [
         id_str,
         n_str,
@@ -200,6 +237,8 @@ export class DR {
         v_str,
         pid_str,
         is_cg_str,
+        is_rb_str,
+        is_dis_str
       ].join("-");
     });
     return output.join(",");
