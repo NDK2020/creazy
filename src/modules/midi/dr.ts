@@ -93,7 +93,12 @@ export class DR {
     this.tracks.include_track_relation = include_track_relation;
   }
 
-  get_output() {
+  get_output(
+    has_cutter = false,
+    note_start = 0,
+    note_end = 0,
+    cut_start_time = 0
+  ) {
     let final_notes: MergedNote[];
 
     // refine track_main
@@ -202,14 +207,14 @@ export class DR {
             console.log("color-change-time-appear: " + n.time_appear.ticks);
           } else {
             // disable duplicate note
-            is_dis="1";
+            is_dis = "1";
           }
           pid = "1";
           color_gate_time_appear.push(n.time_appear.ticks);
           //
           if (cur_relation_note_number != note_found.number) {
             is_rb = "1";
-            is_cg = "0" // either rb or cg
+            is_cg = "0"; // either rb or cg
             cur_relation_note_number = note_found.number;
             // console.log("road break-relation: " + note_found.number);
             // console.log("road break-main: " + n.number);
@@ -238,9 +243,124 @@ export class DR {
         pid_str,
         is_cg_str,
         is_rb_str,
-        is_dis_str
+        is_dis_str,
       ].join("-");
     });
+
+    if (has_cutter) {
+      is_cg_cnt = 0;
+      cur_relation_note_number = -1;
+      if (this.tracks?.relation?.notes) {
+        let tmp = this.tracks?.relation?.notes.filter((n) =>
+          relation_included_notes_number.includes(n.number)
+        );
+        if (tmp && tmp.length > 0) {
+          cur_relation_note_number = tmp[0].number;
+          console.log(
+            "cur-relation-note-number init: " + cur_relation_note_number
+          );
+        }
+
+        console.log("relation-notes: ");
+        console.log(tmp);
+      }
+      let color_gate_time_appear = [-1];
+
+      let filter_notes = final_notes
+        .filter((n, i) => i >= note_start && i <= note_end)
+
+      output = filter_notes.map((n, i, self) => {
+        //pid
+        let pid = "none";
+        if (n.number == 96 || n.number == 84) {
+          pid = "0";
+        }
+
+        if (n.number == 97 || n.number == 85) {
+          pid = "1";
+        }
+
+        if (n.number == 98 || n.number == 86) {
+          pid = "2";
+        }
+
+        // temporary
+        // note 88 is diff color but moving
+        // note 100 is same color but moving
+        if (n.number == 88 || n.number == 100) {
+          pid = "1";
+        }
+
+        let ta = self[i].time_appear.secs - cut_start_time;
+        let ts =
+          i == 0
+            ? self[i].time_appear.secs
+            : self[i].time_appear.secs - self[i - 1].time_appear.secs;
+
+        // is color-gate, road break and disabled
+        let is_cg = "0";
+        let is_rb = "0";
+        let is_dis = "0";
+        if (this.tracks?.relation?.notes) {
+          //
+          let note_found = this.tracks.relation.notes.find((t) => {
+            return n.time_appear.ticks == t.time_appear.ticks;
+          });
+
+          if (note_found != null && note_found != undefined) {
+            // if (is_cg_cnt > 1) {
+            //   is_cg = "1";
+            // }
+            // color-gate-change is at middle
+            // is_cg_cnt++;
+            if (!color_gate_time_appear.includes(n.time_appear.ticks)) {
+              is_cg = "1";
+              console.log("color-change-relation: " + note_found.number);
+              console.log("color-change-main: " + n.number);
+              console.log("color-change-time-appear: " + n.time_appear.ticks);
+            } else {
+              // disable duplicate note
+              is_dis = "1";
+            }
+            pid = "1";
+            color_gate_time_appear.push(n.time_appear.ticks);
+            //
+            if (cur_relation_note_number != note_found.number) {
+              is_rb = "1";
+              is_cg = "0"; // either rb or cg
+              cur_relation_note_number = note_found.number;
+              // console.log("road break-relation: " + note_found.number);
+              // console.log("road break-main: " + n.number);
+              // console.log("road break-time-appear: " + n.time_appear.ticks);
+            }
+          }
+        }
+
+        let id_str = `id:${i}`;
+        let n_str = `n:${n.number}`;
+        let ta_str = `ta:${ta}`;
+        let ts_str = `ts:${ts}`;
+        let d_str = `d:${n.duration.secs}`;
+        let v_str = `v:${n.velocity}`;
+        let pid_str = `pid:${pid}`;
+        let is_cg_str = `icg:${is_cg}`;
+        let is_rb_str = `irb:${is_rb}`;
+        let is_dis_str = `idis:${is_dis}`; // is disabled
+        return [
+          id_str,
+          n_str,
+          ta_str,
+          ts_str,
+          d_str,
+          v_str,
+          pid_str,
+          is_cg_str,
+          is_rb_str,
+          is_dis_str,
+        ].join("-");
+      });
+    }
+
     return output.join(",");
   }
 }

@@ -224,7 +224,13 @@ const get_dr_data = async () => {
     dr.value = new DR(midi_file.value, has_relation.value);
   }
 
-  midi_info.output_str = dr.value?.get_output() || "";
+  midi_info.output_str =
+    dr.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${dr.value?.total_notes}
