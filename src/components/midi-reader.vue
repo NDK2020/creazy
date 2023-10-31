@@ -82,15 +82,16 @@ import {
   GBOC,
   DR,
   GDUC,
+  GDUF,
   GameOldFormat,
-PI,
+  PI,
+  GDUT,
 } from "@/modules/midi";
 
 //---------------
 // @import-antd
 //---------------
 import { notification, UploadChangeParam, UploadProps } from "ant-design-vue";
-import { GDUF } from "@/modules/midi/gduf";
 
 //-----------
 // @cutsong
@@ -154,6 +155,9 @@ watch(midi_file, () => {
       case "gduf":
         get_gduf_data();
         break;
+      case "gdut":
+        get_gdut_data();
+        break;
       case "pi":
         get_pi_data();
         break;
@@ -194,7 +198,7 @@ const on_drop_file = (ev: DragEvent) => {
 };
 
 const is_show_relation_toggle = () => {
-  let list = ["bh", "dr", "gboc"];
+  let list = ["bh", "dr", "gboc", "gdut"];
   return list.some((e) => e === game_id.value);
 };
 
@@ -297,6 +301,30 @@ const get_gduf_data = async () => {
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gduf.value?.total_notes}
+  `;
+};
+
+
+//--------------------
+// @gdut/@duet-tiles
+//--------------------
+const gdut = ref<GDUT>();
+
+const get_gdut_data = async () => {
+  if (midi_file.value) {
+    gdut.value = new GDUT(midi_file.value, has_relation.value);
+  }
+
+  midi_info.output_str =
+    gdut.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
+  song_info.value = `
+    name: ${file_info.name}
+    num-of-notes: ${gdut.value?.total_notes}
   `;
 };
 

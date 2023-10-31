@@ -53,6 +53,17 @@
           </div>
         </a-menu-item>
 
+        <a-menu-item key="gdut">
+          <div class="flex-center">
+            <Icon icon="material-symbols:square-rounded" flip="horizontal"
+            :style="{ fontSize: '28px', color: 'blue' }" />
+
+            <Icon icon="material-symbols:square-rounded" :style="{ fontSize:
+            '28px', color: 'pink' }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gdut</p>
+          </div>
+        </a-menu-item>
+
         <a-menu-item key="pi">
           <div class="flex-center">
             <Icon icon="svg-spinners:blocks-scale" flip="horizontal" :style="{

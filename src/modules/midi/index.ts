@@ -3,5 +3,7 @@ export * from "./bh";
 export * from "./dr";
 export * from "./gduc";
 export * from "./gboc";
+export * from "./gduf";
+export * from "./gdut";
 export * from "./game-old-format";
 export * from "./pi";
