@@ -219,6 +219,19 @@ export class DR {
       if (has_overlap_is_change_color_note) {
         is_dis = "1";
       }
+
+      // handle case when obstacle note have same time_appear with
+      // note number 100 - case both have pid = 1
+      let has_overlap_other_note = self.some(
+        (nn) =>
+          nn.time_appear.ticks == n.time_appear.ticks &&
+          nn.from_track.includes("main") &&
+          n.number == 100
+      );
+
+      if (has_overlap_other_note) {
+        is_dis = "1";
+      }
       //----------------------------------------
 
       let id_str = `id:${i}`;
@@ -327,6 +340,18 @@ export class DR {
       );
 
       if (has_overlap_is_change_color_note) {
+        is_dis = "1";
+      }
+
+      // handle case when obstacle note have same time_appear with
+      // ' note
+      let has_overlap_other_note = self.some(
+        (nn) =>
+          nn.time_appear.ticks == n.time_appear.ticks &&
+          nn.from_track.includes("main")
+      );
+
+      if (has_overlap_other_note) {
         is_dis = "1";
       }
       //----------------------------------------
