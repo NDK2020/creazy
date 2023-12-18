@@ -344,11 +344,12 @@ export class DR {
       }
 
       // handle case when obstacle note have same time_appear with
-      // ' note
+      // note number 100 - case both have pid = 1
       let has_overlap_other_note = self.some(
         (nn) =>
           nn.time_appear.ticks == n.time_appear.ticks &&
-          nn.from_track.includes("main")
+          nn.from_track.includes("main") &&
+          n.number == 100
       );
 
       if (has_overlap_other_note) {
