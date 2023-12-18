@@ -61,6 +61,13 @@ export class DR {
       return notes.length > 0;
     });
 
+    if (track_main == undefined) {
+      // find first track that has note
+      track_main = midi.tracks.find((track) => {
+         return track.some(is_note_event);
+      })
+    } 
+
     // console.log("track main");
     // console.log(track_main);
     // console.log("********************");
