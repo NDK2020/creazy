@@ -20,7 +20,10 @@ export class Track {
   raw_notes = new Array<NoteEvent>(0);
   notes = new Array<MergedNote>(0);
   pans_dt = new Array<{ ticks: number; secs: number }>(0);
+  controllers_dt = new Array<{ ticks: number; secs: number }>(0);
   raw_time_appears = new Array<number>(0);
+
+  controller_time = 0;
 
   constructor(
     header: MidiHeader,
@@ -36,6 +39,7 @@ export class Track {
 
   get_data_basic(track: AnyEvent[] | undefined) {
     this.get_pans_dt(track);
+    this.get_controllers_dt(track);
     this.get_raw_notes(track);
     this.get_raw_time_appear();
     this.get_notes();
@@ -54,6 +58,15 @@ export class Track {
     }));
   }
 
+  get_controllers_dt(track: AnyEvent[] | undefined) {
+    if (track == undefined) return;
+
+    this.controllers_dt = track.filter(is_controller_event).map((e) => ({
+      ticks: e.deltaTime,
+      secs: this.tick2sec(e.deltaTime),
+    }));
+  }
+
   get_raw_notes(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
 
@@ -65,6 +78,7 @@ export class Track {
     if (this.raw_notes.length == 0) return;
 
     let tick_acc = this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+    tick_acc += this.controllers_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
     this.raw_time_appears = this.raw_notes.map(
       (e) => (tick_acc += e.deltaTime)
     );

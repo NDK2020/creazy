@@ -27,20 +27,13 @@ export class GBOC {
   };
   pos_ids = new Array<number>(0);
 
-  cutter = {
-    enabled: false,
-    note_start: 0,
-    note_end: 0,
-    song_start_time: 0,
-  };
-
   output_final = "";
   total_notes = 0;
+
 
   constructor(
     midi: MidiFile,
     include_track_relation = false,
-    enabled_cutter = false
   ) {
 
     let track_tempo = midi.tracks.find((track_events) =>
@@ -89,8 +82,6 @@ export class GBOC {
     this.tracks.relation.get_data_basic(track_relation);
 
 
-    //----------------------------------------
-    this.cutter.enabled = enabled_cutter;
 
     //----------------------------------------
     this.tracks.include_track_relation = include_track_relation;
