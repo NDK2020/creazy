@@ -405,7 +405,7 @@ export class GBOC {
       let d_str = `d:${cur_note.duration.secs}`;
       let v_str = `v:${cur_note.velocity}`;
       let mc_str = `mc:${is_mc}`;
-      let is_g_str = `ig: ${is_g}`;
+      let is_g_str = `ig:${is_g}`;
       let is_dis_str = `idis: ${is_dis}`;
 
       return [
