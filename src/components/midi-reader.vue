@@ -149,6 +149,9 @@ watch(midi_file, () => {
       case "dr":
         get_dr_data();
         break;
+      case "gboc":
+        get_gboc_data();
+        break;
       case "gduc":
         get_gduc_data();
         break;
@@ -248,10 +251,17 @@ const gboc = ref<GBOC>();
 
 const get_gboc_data = async () => {
   if (midi_file.value) {
-    gboc.value = new GBOC(midi_file.value);
+    gboc.value = new GBOC(midi_file.value, has_relation.value);
   }
 
-  midi_info.output_str = gboc.value?.get_output() || "";
+  midi_info.output_str =
+    gboc.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
+
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gboc.value?.total_notes}
