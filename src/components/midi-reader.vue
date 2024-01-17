@@ -18,6 +18,14 @@
 
       <a-switch v-if="is_show_relation_toggle()" v-model:checked="has_relation" checked-children="include-track-relation"
         un-checked-children="include-track-relation" />
+
+      <a-switch v-model:checked="include_pan_events"
+        checked-children="include-pan-events"
+        un-checked-children="no-pan-events" />
+
+      <a-switch v-model:checked="include_ctrl_events"
+        checked-children="include-ctrl-events"
+        un-checked-children="no-ctrl-events" />
     </div>
 
     <div class="title-wrapper w-full mt-[16px] mb-[4px]">
@@ -109,6 +117,8 @@ const cutter = reactive({
 const game_id = ref("");
 const song_info = ref("");
 const has_relation = ref(false);
+const include_pan_events = ref(false);
+const include_ctrl_events = ref(true);
 
 const file_info = reactive({
   path: "",

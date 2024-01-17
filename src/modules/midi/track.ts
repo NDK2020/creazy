@@ -24,17 +24,23 @@ export class Track {
   raw_time_appears = new Array<number>(0);
 
   controller_time = 0;
+  is_include_pan_event = false;
+  is_include_ctrl_event = true;
 
   constructor(
     header: MidiHeader,
     track_tempo: AnyEvent[] | undefined,
-    name = ""
+    name = "",
+    is_include_pan_event = false,
+    is_include_ctrl_event = true
   ) {
     this.division = header.ticksPerBeat;
     this.tempo =
       track_tempo?.find(is_set_tempo_event)?.microsecondsPerBeat || 0;
     this.name = name;
     this.calc_secs_per_tick();
+    this.is_include_pan_event = is_include_pan_event;
+    this.is_include_ctrl_event = is_include_ctrl_event;
   }
 
   get_data_basic(track: AnyEvent[] | undefined) {
@@ -52,6 +58,7 @@ export class Track {
   get_pans_dt(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
 
+    if (!this.is_include_pan_event) return;
     this.pans_dt = track.filter(is_control_pan_event).map((e) => ({
       ticks: e.deltaTime,
       secs: this.tick2sec(e.deltaTime),
@@ -60,6 +67,7 @@ export class Track {
 
   get_controllers_dt(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
+    if (!this.is_include_ctrl_event) return;
 
     this.controllers_dt = track.filter(is_controller_event).map((e) => ({
       ticks: e.deltaTime,
@@ -77,8 +85,10 @@ export class Track {
     if (!this.raw_notes) return;
     if (this.raw_notes.length == 0) return;
 
-    let tick_acc = this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+    let tick_acc = 0;
+    tick_acc += this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
     tick_acc += this.controllers_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+
     this.raw_time_appears = this.raw_notes.map(
       (e) => (tick_acc += e.deltaTime)
     );

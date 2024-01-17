@@ -376,6 +376,7 @@ export class GBOC {
 
             pid = "2"; // tile-for-mood-change is at middle
           }
+        }
 
           // handle case where cur-note is normal note and
           // have same time-appear with mood-change note
@@ -450,7 +451,7 @@ export class GBOC {
           is_dis_str
         ].join("-");
       });
+      return output.join(",");
     }
-    return output.join(",");
   }
 }
