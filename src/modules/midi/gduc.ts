@@ -31,7 +31,11 @@ export class GDUC {
   output_final = "";
   total_notes = 0;
 
-  constructor(midi: MidiFile) {
+  constructor(
+    midi: MidiFile,
+    include_pan_events = false,
+    include_ctrl_events = true
+  ) {
 
     let track_tempo = midi.tracks.find((track_events) =>
       track_events.find(is_set_tempo_event)
@@ -76,13 +80,21 @@ export class GDUC {
     //--------------
     // @track-main
     //--------------
-    this.tracks.main = new MfTrack(midi.header, track_tempo, "main");
+    this.tracks.main = new MfTrack(
+      midi.header, track_tempo, "main",
+      include_pan_events,
+      include_ctrl_events
+    );
     this.tracks.main.get_data_basic(track_main);
 
     //------------------
     // @track-relation
     //------------------
-    this.tracks.relation = new MfTrack(midi.header, track_tempo, "relation");
+    this.tracks.relation = new MfTrack(
+      midi.header, track_tempo, "relation",
+      include_pan_events,
+      include_ctrl_events
+    );
     this.tracks.relation.get_data_basic(track_relation);
 
   }

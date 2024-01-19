@@ -285,7 +285,11 @@ const gduc = ref<GDUC>();
 
 const get_gduc_data = async () => {
   if (midi_file.value) {
-    gduc.value = new GDUC(midi_file.value);
+    gduc.value = new GDUC(
+      midi_file.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
   }
 
   midi_info.output_str =
