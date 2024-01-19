@@ -64,9 +64,9 @@ export class GDUF {
       })
     } 
 
-    // console.log("track main");
-    // console.log(track_main);
-    // console.log("********************");
+    //console.log("track main");
+    //console.log(track_main);
+    //console.log("********************");
 
     let track_relation = midi.tracks.find((track_events) => {
       return track_events
@@ -101,7 +101,7 @@ export class GDUF {
   }
 
 
-  get_output(has_cutter = false, note_start = 0, note_end = 0, cut_start_time = 0) {
+  get_output(has_cutter = false, offset_per_note = 0, note_start = 0, note_end = 0, cut_start_time = 0) {
 
     let final_notes: MergedNote[];
 
@@ -179,7 +179,7 @@ export class GDUF {
 
       let id_str = `id:${i}`;
       let n_str = `n:${n.number}`;
-      let ta_str = `ta:${n.time_appear.secs}`;
+      let ta_str = `ta:${n.time_appear.secs + offset_per_note}`;
       let ts_str = `ts:${ts}`;
       let d_str = `d:${n.duration.secs}`;
       let v_str = `v:${n.velocity}`;
@@ -243,7 +243,7 @@ export class GDUF {
 
       let id_str = `id:${i}`;
       let n_str = `n:${n.number}`;
-      let ta_str = `ta:${ta}`;
+      let ta_str = `ta:${ta + offset_per_note}`;
       let ts_str = `ts:${ts}`;
       let d_str = `d:${n.duration.secs}`;
       let v_str = `v:${n.velocity}`;

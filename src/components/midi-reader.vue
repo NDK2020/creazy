@@ -32,6 +32,12 @@
       <h4>Copy This Content</h4>
     </div>
     <a-space direction="vertical" class="m-12">
+
+      <a-space>
+        offset-per-note<a-input-number v-model:value="offset_per_note"
+          :min="-10" :max="10" />
+      </a-space>
+
       <a-switch v-model:checked="cutter.enabled" checked-children="cutter-off" un-checked-children="cutter-on" />
       <a-space>
         note-start:
@@ -117,8 +123,9 @@ const cutter = reactive({
 const game_id = ref("");
 const song_info = ref("");
 const has_relation = ref(false);
-const include_pan_events = ref(false);
-const include_ctrl_events = ref(true);
+const include_pan_events = ref(true);
+const include_ctrl_events = ref(false);
+const offset_per_note = ref(0);
 
 const file_info = reactive({
   path: "",
@@ -312,12 +319,17 @@ const gduf = ref<GDUF>();
 
 const get_gduf_data = async () => {
   if (midi_file.value) {
-    gduf.value = new GDUF(midi_file.value);
+    gduf.value = new GDUF(
+      midi_file.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
   }
 
   midi_info.output_str =
     gduf.value?.get_output(
       cutter.enabled,
+      offset_per_note.value,
       cutter.note_start,
       cutter.note_end,
       cutter.song_start_time

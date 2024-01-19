@@ -58,7 +58,6 @@ export class Track {
   get_pans_dt(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
 
-    if (!this.is_include_pan_event) return;
     this.pans_dt = track.filter(is_control_pan_event).map((e) => ({
       ticks: e.deltaTime,
       secs: this.tick2sec(e.deltaTime),
@@ -67,7 +66,6 @@ export class Track {
 
   get_controllers_dt(track: AnyEvent[] | undefined) {
     if (track == undefined) return;
-    if (!this.is_include_ctrl_event) return;
 
     this.controllers_dt = track.filter(is_controller_event).map((e) => ({
       ticks: e.deltaTime,
@@ -86,8 +84,19 @@ export class Track {
     if (this.raw_notes.length == 0) return;
 
     let tick_acc = 0;
-    tick_acc += this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
-    tick_acc += this.controllers_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+
+
+    console.log(`track ${name} has pan events?: ${this.is_include_pan_event}`)
+    if (this.is_include_pan_event) {
+      tick_acc += this.pans_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+    }
+
+    console.log(`track ${name} has ctrl events?: ${this.is_include_ctrl_event}`)
+    if (this.is_include_ctrl_event) {
+      tick_acc += this.controllers_dt.reduce((acc, cur) => acc + cur.ticks, 0) || 0;
+    }
+
+    console.log(`pre-events time from track ${name}: ${tick_acc}`)
 
     this.raw_time_appears = this.raw_notes.map(
       (e) => (tick_acc += e.deltaTime)
