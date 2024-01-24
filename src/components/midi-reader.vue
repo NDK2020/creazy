@@ -268,7 +268,12 @@ const gboc = ref<GBOC>();
 
 const get_gboc_data = async () => {
   if (midi_file.value) {
-    gboc.value = new GBOC(midi_file.value, has_relation.value);
+    gboc.value = new GBOC(
+      midi_file.value, 
+      has_relation.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
   }
 
   midi_info.output_str =
