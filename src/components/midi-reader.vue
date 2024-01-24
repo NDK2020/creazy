@@ -371,7 +371,11 @@ const pi = ref<PI>();
 
 const get_pi_data = async () => {
   if (midi_file.value) {
-    pi.value = new PI(midi_file.value);
+    pi.value = new PI(
+      midi_file.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
   }
 
   midi_info.output_str =
