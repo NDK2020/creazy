@@ -41,7 +41,8 @@ export class BH {
   constructor(
     midi: MidiFile,
     include_track_relation = false,
-    enabled_cutter = false
+    include_pan_events = false,
+    include_ctrl_events = true
   ) {
 
     let track_tempo = midi.tracks.find((track_events) =>
@@ -80,18 +81,26 @@ export class BH {
     //--------------
     // @track-main
     //--------------
-    this.tracks.main = new MfTrack(midi.header, track_tempo, "main");
+    this.tracks.main = new MfTrack(
+      midi.header, track_tempo, "main",
+      include_pan_events,
+      include_ctrl_events
+    );
     this.tracks.main.get_data_basic(track_main);
 
     //------------------
     // @track-relation
     //------------------
-    this.tracks.relation = new MfTrack(midi.header, track_tempo, "relation");
+    this.tracks.relation = new MfTrack(
+      midi.header, track_tempo, "relation",
+      include_pan_events,
+      include_ctrl_events
+    );
     this.tracks.relation.get_data_basic(track_relation);
 
 
     //----------------------------------------
-    this.cutter.enabled = enabled_cutter;
+    //this.cutter.enabled = enabled_cutter;
 
     //----------------------------------------
     this.tracks.include_track_relation = include_track_relation;

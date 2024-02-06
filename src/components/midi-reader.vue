@@ -229,7 +229,12 @@ const bh = ref<BH>();
 
 const get_bh_data = async () => {
   if (midi_file.value) {
-    bh.value = new BH(midi_file.value, has_relation.value);
+    bh.value = new BH(
+      midi_file.value, 
+      has_relation.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
   }
 
   midi_info.output_str = bh.value?.get_output() || "";
