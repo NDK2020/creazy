@@ -100,6 +100,7 @@ import {
   GameOldFormat,
   PI,
   GDUT,
+  GMNB,
 } from "@/modules/midi";
 
 //---------------
@@ -177,6 +178,9 @@ watch(midi_file, () => {
         break;
       case "gdut":
         get_gdut_data();
+        break;
+      case "gmnb":
+        get_gmnb_data();
         break;
       case "pi":
         get_pi_data();
@@ -371,6 +375,33 @@ const get_gdut_data = async () => {
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gdut.value?.total_notes}
+  `;
+};
+
+//---------------------------------
+// @gmnb/@game-music-night-battle
+//---------------------------------
+const gmnb = ref<GMNB>();
+
+const get_gmnb_data = async () => {
+  if (midi_file.value) {
+    gmnb.value = new GMNB(
+      midi_file.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
+  }
+
+  midi_info.output_str =
+    gmnb.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
+  song_info.value = `
+    name: ${file_info.name}
+    num-of-notes: ${gmnb.value?.total_notes}
   `;
 };
 

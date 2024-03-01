@@ -7,3 +7,4 @@ export * from "./gduf";
 export * from "./gdut";
 export * from "./game-old-format";
 export * from "./pi";
+export * from "./gmnb"

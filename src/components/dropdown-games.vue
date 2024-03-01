@@ -64,6 +64,15 @@
           </div>
         </a-menu-item>
 
+
+        <a-menu-item key="gmnb">
+          <div class="flex-center">
+            <Icon icon="arcticons:friday-night-funkin" 
+            :style="{ fontSize: '40px', color: '#5bdef4', fontWeight: '900' }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gmnb</p>
+          </div>
+        </a-menu-item>
+
         <a-menu-item key="pi">
           <div class="flex-center">
             <Icon icon="svg-spinners:blocks-scale" flip="horizontal" :style="{
