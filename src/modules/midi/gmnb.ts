@@ -47,7 +47,7 @@ export class GMNB {
     let track_mains = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find((n) => n.text == "normal");
+        .find((n) => n.text == "easy");
     });
 
     let track_main = track_mains.find((track) => {
