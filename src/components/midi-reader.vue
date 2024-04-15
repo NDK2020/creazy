@@ -254,7 +254,12 @@ const get_bh_data = async () => {
 const dr = ref<DR>();
 const get_dr_data = async () => {
   if (midi_file.value) {
-    dr.value = new DR(midi_file.value, has_relation.value);
+    dr.value = new DR(
+      midi_file.value, 
+      has_relation.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
   }
 
   midi_info.output_str =

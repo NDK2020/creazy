@@ -91,9 +91,6 @@ export class GBOC {
     );
     this.tracks.relation.get_data_basic(track_relation);
 
-
-
-    //----------------------------------------
     this.tracks.include_track_relation = include_track_relation;
   }
 
