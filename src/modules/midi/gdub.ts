@@ -101,8 +101,9 @@ export class GDUB {
     let track_instruments = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find((n) => n.text == "instrument");
+        .find((n) => n.text == "instrument" || n.text =="intrument");
     });
+    
 
     let track_instrument_events = track_instruments.find((track) => {
       let notes = track.filter(is_note_event).map((e) => e as NoteEvent);
