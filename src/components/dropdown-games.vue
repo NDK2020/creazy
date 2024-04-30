@@ -28,10 +28,20 @@
           </div>
         </a-menu-item>
 
+        <!--
         <a-menu-item key="gboc">
           <div class="flex-center">
             <Icon icon="game-icons:hollow-cat" :style="{ fontSize: '28px', color: 'black' }" />
             <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gboc</p>
+          </div>
+        </a-menu-item>
+        -->
+        <a-menu-item key="gdub">
+          <div class="flex-center">
+            <Icon icon="streamline-emojis:bird-1" flip="horizontal" :style="{ fontSize: '28px' }" />
+
+            <Icon icon="streamline-emojis:bird-1" :style="{ fontSize: '28px' }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gdub</p>
           </div>
         </a-menu-item>
 

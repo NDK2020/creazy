@@ -93,7 +93,7 @@ import {
   is_note_event,
   NoteEvent,
   BH,
-  GBOC,
+  GDUB,
   DR,
   GDUC,
   GDUF,
@@ -167,8 +167,8 @@ watch(midi_file, () => {
       case "dr":
         get_dr_data();
         break;
-      case "gboc":
-        get_gboc_data();
+      case "gdub":
+        get_gdub_data();
         break;
       case "gduc":
         get_gduc_data();
@@ -275,23 +275,22 @@ const get_dr_data = async () => {
   `;
 };
 
-//----------------------
-// @gboc/@bouncing-cat
-//----------------------
-const gboc = ref<GBOC>();
+//--------------------
+// @gdub/@duet-birds
+//--------------------
+const gdub = ref<GDUB>();
 
-const get_gboc_data = async () => {
+const get_gdub_data = async () => {
   if (midi_file.value) {
-    gboc.value = new GBOC(
-      midi_file.value, 
-      has_relation.value,
+    gdub.value = new GDUB(
+      midi_file.value,
       include_pan_events.value,
       include_ctrl_events.value
     );
   }
 
   midi_info.output_str =
-    gboc.value?.get_output(
+    gdub.value?.get_output(
       cutter.enabled,
       cutter.note_start,
       cutter.note_end,
@@ -300,7 +299,7 @@ const get_gboc_data = async () => {
 
   song_info.value = `
     name: ${file_info.name}
-    num-of-notes: ${gboc.value?.total_notes}
+    num-of-notes: ${gdub.value?.total_notes}
   `;
 };
 
