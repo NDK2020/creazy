@@ -45,6 +45,9 @@ const on_game_id_select = (key: string) => {
     case "gmnb":
       game_name.value = "gmnb";
       break;
+    case "gthf":
+      game_name.value = "gthf";
+      break;
     case "pi":
       game_name.value = "pi";
       break;

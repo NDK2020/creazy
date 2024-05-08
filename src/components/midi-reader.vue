@@ -101,6 +101,7 @@ import {
   PI,
   GDUT,
   GMNB,
+  GTHF,
 } from "@/modules/midi";
 
 //---------------
@@ -182,6 +183,9 @@ watch(midi_file, () => {
       case "gmnb":
         get_gmnb_data();
         break;
+      case "gthf":
+        get_gthf_data();
+        break;
       case "pi":
         get_pi_data();
         break;
@@ -222,7 +226,7 @@ const on_drop_file = (ev: DragEvent) => {
 };
 
 const is_show_relation_toggle = () => {
-  let list = ["bh", "dr", "gboc", "gdut"];
+  let list = ["bh", "dr", "gboc", "gdut", "gthf"];
   return list.some((e) => e === game_id.value);
 };
 
@@ -406,6 +410,29 @@ const get_gmnb_data = async () => {
   song_info.value = `
     name: ${file_info.name}
     num-of-notes: ${gmnb.value?.total_notes}
+  `;
+};
+
+
+//-----------------------
+// @gthf/tile-hop-fires
+//-----------------------
+const gthf = ref<GTHF>();
+
+const get_gthf_data = async () => {
+  if (midi_file.value) {
+    gthf.value = new GTHF(
+      midi_file.value, 
+      has_relation.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
+  }
+
+  midi_info.output_str = gthf.value?.get_output() || "";
+  song_info.value = `
+    name: ${file_info.name}
+    num-of-notes: ${gthf.value?.total_notes}
   `;
 };
 

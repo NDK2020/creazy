@@ -83,6 +83,15 @@
           </div>
         </a-menu-item>
 
+
+        <a-menu-item key="gthf">
+          <div class="flex-center">
+            <Icon icon="marketeq:fire-left" 
+            :style="{ fontSize: '40px',  fontWeight: '900' }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }"> gthf </p>
+          </div>
+        </a-menu-item>
+
         <a-menu-item key="pi">
           <div class="flex-center">
             <Icon icon="svg-spinners:blocks-scale" flip="horizontal" :style="{
