@@ -141,7 +141,7 @@ export class GTHF {
     console.log(final_notes);
     console.log("********************");
     console.log("relation");
-    console.log(this.tracks.relation.notes);
+    console.log(this.tracks?.relation?.notes);
 
 
     //--------------
