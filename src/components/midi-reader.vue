@@ -399,6 +399,7 @@ const get_gina_data = async () => {
   if (midi_file.value) {
     gina.value = new GINA(
       midi_file.value,
+      has_relation.value,
       include_pan_events.value,
       include_ctrl_events.value
     );
@@ -406,10 +407,10 @@ const get_gina_data = async () => {
 
   midi_info.output_str =
     gina.value?.get_output(
-      cutter.enabled,
-      cutter.note_start,
-      cutter.note_end,
-      cutter.song_start_time
+      //cutter.enabled,
+      //cutter.note_start,
+      //cutter.note_end,
+      //cutter.song_start_time
     ) || "";
   song_info.value = `
     name: ${file_info.name}
