@@ -74,6 +74,13 @@
           </div>
         </a-menu-item>
 
+        <a-menu-item key="gina">
+          <div class="flex-center">
+            <Icon icon="openmoji:pouting-cat" 
+              :style="{ fontSize: '40px',  }" />
+            <p class="mt-8 ml-8 text-black" :style="{ color: 'black' }">gina</p>
+          </div>
+        </a-menu-item>
 
         <a-menu-item key="gmnb">
           <div class="flex-center">

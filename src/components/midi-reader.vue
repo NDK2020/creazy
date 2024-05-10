@@ -101,6 +101,7 @@ import {
   PI,
   GDUT,
   GMNB,
+  GINA,
   GTHF,
 } from "@/modules/midi";
 
@@ -179,6 +180,9 @@ watch(midi_file, () => {
         break;
       case "gdut":
         get_gdut_data();
+        break;
+      case "gina":
+        get_gina_data();
         break;
       case "gmnb":
         get_gmnb_data();
@@ -385,6 +389,34 @@ const get_gdut_data = async () => {
     num-of-notes: ${gdut.value?.total_notes}
   `;
 };
+
+//--------
+// @gina
+//--------
+const gina = ref<GINA>();
+
+const get_gina_data = async () => {
+  if (midi_file.value) {
+    gina.value = new GINA(
+      midi_file.value,
+      include_pan_events.value,
+      include_ctrl_events.value
+    );
+  }
+
+  midi_info.output_str =
+    gina.value?.get_output(
+      cutter.enabled,
+      cutter.note_start,
+      cutter.note_end,
+      cutter.song_start_time
+    ) || "";
+  song_info.value = `
+    name: ${file_info.name}
+    num-of-notes: ${gina.value?.total_notes}
+  `;
+};
+
 
 //---------------------------------
 // @gmnb/@game-music-night-battle
