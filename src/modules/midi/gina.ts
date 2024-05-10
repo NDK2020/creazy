@@ -93,7 +93,7 @@ export class GINA {
     let track_brso_articulates_3 = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find((n) => n.text == "BRSO Articulate #3" || "BRSO Articulate #2");
+        .find((n) => n.text == "BRSO Articulate #3" || n.text == "BRSO Articulate #2");
     });
 
 
@@ -161,7 +161,15 @@ export class GINA {
 
     final_notes = final_notes
       .filter((n) => include_numbers.includes(n.number))
-      .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
+      .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks)
+      //.filter((cur, cur_idx,self) => 
+      //  !self.some(
+      //    (dup, dup_idx) => dup_idx < cur_idx 
+      //      && dup.time_appear.ticks == cur.time_appear.ticks 
+      //      && dup.number == cur.number
+      //  )
+      //)
+
 
     console.log("final_notes");
     console.log(final_notes);
@@ -172,7 +180,7 @@ export class GINA {
     // @bh/@output
     //--------------
     let mc_cnt = 0;
-    let output = final_notes.map((n, i) => {
+    let output = final_notes.map((n, i, self) => {
 
       //pid - position-id
       //|….1….3….5….|
@@ -213,8 +221,6 @@ export class GINA {
       if (73 == n.number) {
         pid = "9";
       }
-
-
 
       // moodchange
       let is_mc = "0";
