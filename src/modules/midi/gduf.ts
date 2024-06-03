@@ -31,6 +31,7 @@ export class GDUF {
 
   output_final = "";
   total_notes = 0;
+  output_json = {};
 
   constructor(
     midi: MidiFile,
@@ -194,6 +195,89 @@ export class GDUF {
       return [id_str, n_str, ta_str, ts_str, d_str, v_str, pid_str, ie_str].join("-");
     });
     this.total_notes = final_notes.length;
+
+    // ----------- temporary ----------------
+
+    //let minDuration = final_notes.reduce((minObj, currentObj) => {
+    //  return currentObj.duration.secs < minObj.duration.secs ? currentObj : minObj;
+    //}).duration.secs;
+    //
+    //
+    //
+    //let notes_json = final_notes.map((n, i, self) => {
+    //
+    //  //pid - position-id
+    //  //|….0….1….2….|….3….4….5….|
+    //    let pid = "none";
+    //    if (n.number == 101) {
+    //      pid = "0";
+    //    }
+    //
+    //    if (n.number == 100) {
+    //      pid = "1";
+    //    }
+    //
+    //    if (n.number == 99) {
+    //      pid = "2";
+    //    }
+    //
+    //    if (n.number == 98) {
+    //      pid = "3";
+    //    }
+    //
+    //    if (n.number == 97) {
+    //      pid = "4";
+    //    }
+    //
+    //    if (n.number == 96) {
+    //      pid = "5";
+    //    }
+    //
+    //
+    //  let ts = 0;
+    //  if (i == 0) {
+    //    ts = self[i].time_appear.secs - 0; 
+    //  } else {
+    //    ts = self[i].time_appear.secs - self[i-1].time_appear.secs;
+    //  }
+    //
+    //  // is-epic-note
+    //  let ie = "0"
+    //  if (notes_epic.some(ne => ne.time_appear.ticks == n.time_appear.ticks)) {
+    //    ie = "1"
+    //  }
+    //
+    //  let id_str = `id:${i}`;
+    //  let n_str = `n:${n.number}`;
+    //  let ta_str = `ta:${n.time_appear.secs + offset_per_note}`;
+    //  let ts_str = `ts:${ts}`;
+    //  let d_str = `d:${n.duration.secs}`;
+    //  let v_str = `v:${n.velocity}`;
+    //  let pid_str = `pid:${pid}`;
+    //  let ie_str = `ie:${ie}`;
+    //  //return [id_str, n_str, ta_str, ts_str, d_str, v_str, pid_str, ie_str].join("-");
+    //
+    //  let is_note_long = n.duration.secs > minDuration;
+    //  let is_note_single = n.duration.secs <= minDuration;
+    //  return {
+    //    noteID: `${i}`,
+    //    timeAppear: `${n.time_appear.secs + offset_per_note}`,
+    //    positionId: `${pid}`,
+    //    noteNumber: `${n.number}`,
+    //    isLongNote: is_note_long,
+    //    isSingleNote: is_note_single,
+    //    duration: `${n.duration.secs}`,
+    //    velocity: `${n.velocity}`
+    //  }
+    //});
+    //
+    //this.output_json = {
+    // songName: "dt_gdut_a_RushE_SheetMusicBoss_hard--22s_st", 
+    // notes: notes_json 
+    //}
+    //
+    //let jsonString = JSON.stringify(this.output_json);
+    //console.log(jsonString);
 
     //----------------------------------------
 
