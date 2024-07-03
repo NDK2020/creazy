@@ -130,7 +130,7 @@ export class GTHF {
     if (this.tracks.include_track_relation) {
       final_notes = [...final_notes, ...(this.tracks?.relation?.notes ?? [])];
       // we need extract the note `12` of relation track
-      include_numbers = [...include_numbers, 12];
+      include_numbers = [...include_numbers, 0, 1, 2, 3, 4, 5, 12];
     }
 
     final_notes = final_notes
@@ -143,6 +143,7 @@ export class GTHF {
     console.log("relation");
     console.log(this.tracks?.relation?.notes);
 
+    let used_relation_note = [];
 
     //--------------
     // @bh/@output
@@ -155,11 +156,11 @@ export class GTHF {
       //|…..2...4…..|
       let pid = "none";
       if (n.number == 96) {
-        pid = "0";
+        pid = "4";
       }
 
       if (n.number == 97) {
-        pid = "1";
+        pid = "3";
       }
 
       if (n.number == 98) {
@@ -167,24 +168,34 @@ export class GTHF {
       }
 
       if (n.number == 99) {
-        pid = "3";
+        pid = "1";
       }
 
       if (n.number == 100) {
-        pid = "4";
+        pid = "0";
       }
 
       // moodchange
-      let is_mc = "0";
+      let is_mc = "100";
       if (this.tracks.include_track_relation) {
 
         let found = this.tracks?.relation?.notes.some(
           e => e.time_appear.ticks == n.time_appear.ticks
         );
+
+        let find = this.tracks?.relation?.notes.find(
+          e => e.time_appear.ticks == n.time_appear.ticks
+        );
+
         if (found) {
           if (mc_cnt > 1) {
-            is_mc = "1";
-            // console.log(`note ${i}: has mood change`)
+            if (find && !used_relation_note.includes(find.order)) {
+              is_mc = `${find.number}`;
+              used_relation_note.push(find.order)
+              console.log(`note ${i} has mood change`);
+              console.log(find);
+              console.log("**************")
+            }
           }
           mc_cnt++;
           pid = "2"; // tile-long is at middle
