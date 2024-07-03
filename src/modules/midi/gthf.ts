@@ -143,7 +143,7 @@ export class GTHF {
     console.log("relation");
     console.log(this.tracks?.relation?.notes);
 
-    let used_relation_note = [];
+    let used_relation_note: number[] = [];
 
     //--------------
     // @bh/@output
