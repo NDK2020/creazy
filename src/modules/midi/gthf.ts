@@ -130,7 +130,7 @@ export class GTHF {
     if (this.tracks.include_track_relation) {
       final_notes = [...final_notes, ...(this.tracks?.relation?.notes ?? [])];
       // we need extract the note `12` of relation track
-      include_numbers = [...include_numbers, 0, 1, 2, 3, 4, 5, 12];
+      include_numbers = [...include_numbers];
     }
 
     final_notes = final_notes
