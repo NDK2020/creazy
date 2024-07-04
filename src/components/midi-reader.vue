@@ -158,7 +158,9 @@ const file_list = ref([]);
 
 watch(midi_file, () => {
   if (midi_file.value) {
+    console.log("midi raw content: ")
     console.log(midi_file.value);
+    console.log("********************");
     switch (game_id.value) {
       case "-1":
         get_old_data();

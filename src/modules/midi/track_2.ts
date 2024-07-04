@@ -11,9 +11,11 @@ import {
   NoteOffEvent,
 } from "midifile-ts";
 
-export class Track {
+
+export class Track2 {
   name = "";
   tempo = 0.0;
+  tempos: Tempo[] = []
   division = 0.0;
   seconds_per_tick = 0.0;
   num_of_notes = 0.0;
@@ -27,6 +29,7 @@ export class Track {
   is_include_pan_event = false;
   is_include_ctrl_event = true;
 
+
   constructor(
     header: MidiHeader,
     track_tempo: AnyEvent[] | undefined,
@@ -37,6 +40,42 @@ export class Track {
     this.division = header.ticksPerBeat;
     this.tempo =
       track_tempo?.find(is_set_tempo_event)?.microsecondsPerBeat || 0;
+
+    let tempos_ev = track_tempo?.filter(is_set_tempo_event);
+
+    let tempo_tick_acc = 0;
+    let time_appear_in_secs_acc = 0;
+    if (tempos_ev) {
+      tempos_ev.forEach((ev, idx) => {
+        let prev_tempo_ticks = tempo_tick_acc; 
+        tempo_tick_acc += ev.deltaTime;
+
+        let new_tempo = new Tempo()
+          .set_delta_time(ev.deltaTime)
+          .set_ms_secs_per_beat(ev.microsecondsPerBeat)
+          .set_time_appear(
+            tempo_tick_acc, prev_tempo_ticks,
+            this.division, time_appear_in_secs_acc
+          )
+
+
+        this.tempos.push(new_tempo);
+
+        time_appear_in_secs_acc = new_tempo.time_appear.secs;
+
+        //if (0 == idx) {
+        //  new_tempo.set_time_appear(tempo_tick_acc, this.division, time_appear_in_secs_acc);
+        //  time_appear_in_secs_acc = new_tempo.time_appear.secs;
+        //}
+
+      })
+
+      if (this.name == "main") {
+        this.debug_tempo();
+      }
+
+    }
+
     this.name = name;
     this.calc_secs_per_tick();
     this.is_include_pan_event = is_include_pan_event;
@@ -110,12 +149,14 @@ export class Track {
     this.raw_notes.forEach((e, i) => {
       // merge 2 notes on/off
       if (is_note_off_event(e)) {
-        //
+
         let match_note_id_on = this.find_match_note_id_on(i, e.noteNumber);
-        //
+
+
         if (match_note_id_on >= 0) {
+
           let note_on = this.raw_notes[match_note_id_on] as NoteOnEvent;
-          //
+
           let new_note = new MergedNote()
             .set_order(match_note_id_on)
             .set_match_note_order(i)
@@ -132,10 +173,87 @@ export class Track {
             .set_time_appear(this.raw_time_appears[match_note_id_on] || 0)
             .set_from_track(this.name);
           this.notes.push(new_note);
+
         }
       }
     });
     this.notes.sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
+
+
+
+    // update time appear of notes again in case there are many tempos in one
+    // track, prev_tempos will be 1 as first tempo is applied above calculation 
+    if (this.tempos.length < 2) return;
+
+    // 1. find note that is last in tempo_idx range [0, 1]
+    //let notes_in_first_range = this.notes
+    //  .filter(n => n.time_appear.ticks < this.tempos[1].time_appear.ticks)
+    //let last_note = notes_in_first_range[length - 1];
+
+    //let time_appear_acc = last_note.time_appear.secs;
+    //console.log("last note in first tempo range: ");
+    //console.log(last_note);
+
+    let cur_tempos_idx = 0;
+    let next_tempos_idx = 1;
+    let update_notes_tempo_info = {}
+    let time_appear_acc = 0;
+    
+    while (cur_tempos_idx < this.tempos.length) {
+
+
+      let range = [cur_tempos_idx, next_tempos_idx]
+
+      if (cur_tempos_idx == this.tempos.length - 1) {
+        range = [this.tempos[cur_tempos_idx].time_appear.ticks, Number.MAX_VALUE]
+      } else {
+        range = [this.tempos[cur_tempos_idx].time_appear.ticks,
+        this.tempos[next_tempos_idx].time_appear.ticks]
+      }
+
+      update_notes_tempo_info[`tempo_${cur_tempos_idx}`] = this.tempos[cur_tempos_idx];
+
+
+      this.tempo = this.tempos[cur_tempos_idx].ms_secs_per_beat;
+      this.calc_secs_per_tick();
+
+      this.notes.forEach((cur_note, idx, self) => {
+
+        if (cur_note.time_appear.ticks >= range[0] 
+         && cur_note.time_appear.ticks < range[1]) {
+
+          let prev_note_ticks = 0;
+          if (idx > 0) {
+            prev_note_ticks = self[idx-1].time_appear.ticks;
+          }
+
+          cur_note
+            .set_secs_per_tick(this.seconds_per_tick)
+            .set_duration(cur_note.time_appear.ticks)
+            .set_time_appear_2(
+              cur_note.time_appear.ticks, prev_note_ticks, time_appear_acc
+            )
+
+          update_notes_tempo_info[`tempo_${cur_tempos_idx}`][`note_${idx}`] = cur_note;
+
+          time_appear_acc = cur_note.time_appear.secs;
+        }
+
+      });
+
+
+      //console.log("range: [%s, %s]", range[0], range[1]);
+      //console.log(notes_in_range);
+      //console.log("********************")
+
+      cur_tempos_idx = next_tempos_idx;
+      next_tempos_idx++;
+    }
+
+    if (this.name == "main") {
+      console.log(update_notes_tempo_info);
+    }
+
   }
 
   find_match_note_id_on(id: number, note_off_number: number): number {
@@ -171,17 +289,29 @@ export class Track {
     let ms_per_tick = this.tempo / this.division;
     this.seconds_per_tick = ms_per_tick / 1000000.0;
   }
+
+  debug_tempo() {
+    if (!this.tempos) return;
+
+    console.log("debug-tempos");
+    let output = {}
+    this.tempos.forEach((t, i) => {
+      output[`tempo_${i}`] = t;
+    });
+    console.log(output);
+    console.log("********************");
+  }
 }
 
-export class MergedNote {
+class MergedNote {
   order: number = -1;
-  time_appear: Duration = new TimeAppear();
-  delta_time: DeltaTime = new DeltaTime();
-  duration: TimeAppear = new Duration();
   note_off_order = -1;
   from_track: string = "";
   kind: string = "";
   number: number = -1;
+  delta_time: DeltaTime = new DeltaTime();
+  duration: Duration = new Duration();
+  time_appear: TimeAppear = new TimeAppear();
   seconds_per_tick: number = 0;
   channel: string = "";
   velocity: number = 0;
@@ -210,6 +340,7 @@ export class MergedNote {
     this.number = val;
     return this;
   }
+
   set_secs_per_tick(val: number) {
     this.seconds_per_tick = val;
     return this;
@@ -237,6 +368,16 @@ export class MergedNote {
     return this;
   }
 
+  set_time_appear_2(cur_ticks: number, prev_note_ticks: number, prev_note_appear_time_in_secs: number) {
+    this.time_appear.seconds_per_tick = this.seconds_per_tick;
+    this.time_appear.ticks = cur_ticks;
+    this.time_appear.secs =
+      this.time_appear.tick2sec(cur_ticks - prev_note_ticks) + prev_note_appear_time_in_secs;
+
+    return this;
+  }
+
+
   set_from_track(val: string) {
     this.from_track = val;
     return this;
@@ -245,6 +386,44 @@ export class MergedNote {
   tick2sec(delta_time_in_ticks: number): number {
     return delta_time_in_ticks * this.seconds_per_tick;
   }
+}
+
+class Tempo {
+  delta_time: number = 0;
+  ms_secs_per_beat: number = 0;
+  time_appear: TimeAppear = new TimeAppear()
+
+  set_delta_time(val: number) {
+    this.delta_time = val;
+    return this;
+  }
+
+  set_ms_secs_per_beat(val: number) {
+    this.ms_secs_per_beat = val;
+    return this;
+  }
+
+  set_time_appear(
+    cur_ticks: number,
+    prev_ticks: number,
+    division: number,
+    prev_tempo_appear_time_in_secs: number
+  ) {
+    // recalc sec-per-ticks
+    let ms_per_tick = this.ms_secs_per_beat / division;
+    let seconds_per_tick = ms_per_tick / 1000000.0;
+
+    //console.log("cur_ticks %s", this.ms_secs_per_beat);
+    //console.log("ms_per_tick/division %s / %s", ms_per_tick, division);
+    //console.log("seconds_per_tick %s", seconds_per_tick);
+    //console.log("********************");
+    this.time_appear.seconds_per_tick = seconds_per_tick;
+    this.time_appear.ticks = cur_ticks;
+    this.time_appear.secs = this.time_appear.tick2sec(cur_ticks - prev_ticks) + prev_tempo_appear_time_in_secs;
+    return this;
+  }
+
+
 }
 
 interface ITimeUnit {
@@ -261,6 +440,7 @@ class TimeUnit implements ITimeUnit {
     this.ticks = new_val_in_tick;
     this.secs = this.tick2sec(new_val_in_tick);
   }
+
   tick2sec(delta_time_in_ticks: number): number {
     return delta_time_in_ticks * this.seconds_per_tick;
   }
@@ -270,16 +450,18 @@ class DeltaTime extends TimeUnit { }
 class TimeAppear extends TimeUnit { }
 class Duration extends TimeUnit { }
 
-export const is_track_name_event = (ev: AnyEvent): ev is TrackNameEvent =>
+
+
+const is_track_name_event = (ev: AnyEvent): ev is TrackNameEvent =>
   is_any_meta_event(ev) && ev.subtype === "trackName";
 
-export const is_set_tempo_event = (ev: AnyEvent): ev is SetTempoEvent =>
+const is_set_tempo_event = (ev: AnyEvent): ev is SetTempoEvent =>
   is_any_meta_event(ev) && ev.subtype === "setTempo";
 
 const is_any_meta_event = (ev: AnyEvent): ev is AnyMetaEvent =>
   ev.type === "meta";
 
-export const is_note_event = (ev: AnyEvent): ev is NoteEvent =>
+const is_note_event = (ev: AnyEvent): ev is NoteEvent =>
   is_any_channel_event(ev) &&
   (ev.subtype === "noteOn" || ev.subtype === "noteOff");
 
@@ -298,4 +480,4 @@ const is_controller_event = (ev: AnyEvent): ev is ControllerEvent =>
 const is_any_channel_event = (ev: AnyEvent): ev is AnyChannelEvent =>
   ev.type === "channel";
 
-export type NoteEvent = NoteOnEvent | NoteOffEvent;
+type NoteEvent = NoteOnEvent | NoteOffEvent;

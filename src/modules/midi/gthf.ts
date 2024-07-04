@@ -1,6 +1,6 @@
 
 import {
-  Track as MfTrack,
+  Track2 as MfTrack,
   MergedNote,
   is_set_tempo_event,
   is_track_name_event,
