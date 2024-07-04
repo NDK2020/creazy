@@ -185,18 +185,9 @@ export class Track2 {
     // track, prev_tempos will be 1 as first tempo is applied above calculation 
     if (this.tempos.length < 2) return;
 
-    // 1. find note that is last in tempo_idx range [0, 1]
-    //let notes_in_first_range = this.notes
-    //  .filter(n => n.time_appear.ticks < this.tempos[1].time_appear.ticks)
-    //let last_note = notes_in_first_range[length - 1];
-
-    //let time_appear_acc = last_note.time_appear.secs;
-    //console.log("last note in first tempo range: ");
-    //console.log(last_note);
-
     let cur_tempos_idx = 0;
     let next_tempos_idx = 1;
-    let update_notes_tempo_info = {}
+    let update_notes_tempo_info: any = {}
     let time_appear_acc = 0;
     
     while (cur_tempos_idx < this.tempos.length) {
