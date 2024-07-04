@@ -284,13 +284,13 @@ export class Track2 {
   debug_tempo() {
     if (!this.tempos) return;
 
-    console.log("debug-tempos");
-    let output = {}
-    this.tempos.forEach((t, i) => {
-      output[`tempo_${i}`] = t;
-    });
-    console.log(output);
-    console.log("********************");
+    //console.log("debug-tempos");
+    //let output: any = {}
+    //this.tempos.forEach((t, i) => {
+    //  output[`tempo_${i}`] = t;
+    //});
+    //console.log(output);
+    //console.log("********************");
   }
 }
 
