@@ -130,7 +130,7 @@ export class GTHF {
     if (this.tracks.include_track_relation) {
       final_notes = [...final_notes, ...(this.tracks?.relation?.notes ?? [])];
       // we need extract the note `12` of relation track
-      include_numbers = [...include_numbers];
+      include_numbers = [...include_numbers, 12];
     }
 
     final_notes = final_notes
@@ -180,11 +180,11 @@ export class GTHF {
       if (this.tracks.include_track_relation) {
 
         let found = this.tracks?.relation?.notes.some(
-          e => e.time_appear.ticks == n.time_appear.ticks
+          e => e.time_appear.ticks == n.time_appear.ticks && e.number != 12
         );
 
         let find = this.tracks?.relation?.notes.find(
-          e => e.time_appear.ticks == n.time_appear.ticks
+          e => e.time_appear.ticks == n.time_appear.ticks && e.number != 12
         );
 
         if (found) {
@@ -204,10 +204,10 @@ export class GTHF {
       }
 
 
-      //space_travel 
-      let is_st = "0";
+      //is-galaxy-space 
+      let is_gs = "0";
       if (n.number == 12) {
-        is_st="1";
+        is_gs="1";
       }
 
 
@@ -219,8 +219,8 @@ export class GTHF {
       let d_str = `d:${n.duration.secs}`;
       let v_str = `v:${n.velocity}`;
       let mc_str = `mc:${is_mc}`;
-      let st_str = `st:${is_st}`;
-      return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str, st_str].join("-");
+      let gs_str = `gs:${is_gs}`;
+      return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str, gs_str].join("-");
     });
 
     this.total_notes = final_notes.length;

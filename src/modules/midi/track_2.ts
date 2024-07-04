@@ -220,7 +220,7 @@ export class Track2 {
 
           cur_note
             .set_secs_per_tick(this.seconds_per_tick)
-            .set_duration(cur_note.time_appear.ticks)
+            .set_duration_2()
             .set_time_appear_2(
               cur_note.time_appear.ticks, prev_note_ticks, time_appear_acc
             )
@@ -350,6 +350,12 @@ class MergedNote {
   set_duration(new_val_in_tick: number) {
     this.duration.seconds_per_tick = this.seconds_per_tick;
     this.duration.set(new_val_in_tick);
+    return this;
+  }
+
+  set_duration_2() {
+    this.duration.seconds_per_tick = this.seconds_per_tick;
+    this.duration.secs = this.tick2sec(this.duration.ticks);
     return this;
   }
 
