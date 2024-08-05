@@ -71,7 +71,7 @@ export class GINA {
     let track_brso_articulates = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find((n) => n.text == "BRSO Articulate");
+        .find((n) => n.text === "BRSO Articulate");
     });
 
     let track_brso_articulate = track_brso_articulates.find((track) => {
@@ -93,7 +93,8 @@ export class GINA {
     let track_brso_articulates_3 = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find((n) => n.text == "BRSO Articulate #3" || n.text == "BRSO Articulate #2");
+        //.find((n) => n.text == "BRSO Articulate #3" || n.text == "BRSO Articulate #2");
+        .find((n) => n.text === "BRSO Articulate #3");
     });
 
 
@@ -139,25 +140,35 @@ export class GINA {
     let final_notes: MergedNote[];
 
     // refine track_main
-    let main_include_notes_number = [81, 80, 79, 79, 77, 76, 75, 74, 73];
+    //let main_include_notes_number = [81, 80, 79, 78, 77, 76, 75, 74, 73];
+    let left_notes_num = [83, 80, 79, 78];
+    let right_notes_num = [76, 75, 74, 71];
+    let main_include_notes_number = [...left_notes_num, ...right_notes_num];
 
-    let relation_include_notes_number = Array(13)
-      .fill(0)
-      .map((_, index) => index)
-    ;
+    if (this.tracks?.BRSO_Articulate?.notes) {
+      console.log("BRSO_Articulate notes");
+      console.log(
+        this.tracks?.BRSO_Articulate?.notes
+          .filter((n) => main_include_notes_number.includes(n.number))
+          .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks)
+      );
+      console.log("********************");
+    }
+
+    if (this.tracks?.BRSO_Articulate_3?.notes) {
+      console.log("BRSO_Articulate_3 notes");
+      console.log(
+        this.tracks?.BRSO_Articulate_3?.notes
+          .filter((n) => main_include_notes_number.includes(n.number))
+          .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks)
+      );
+      console.log("********************");
+    }
 
     final_notes = [...(this.tracks?.BRSO_Articulate?.notes ?? [])];
     final_notes = [...final_notes, ...(this.tracks?.BRSO_Articulate_3?.notes ?? [])];
     let include_numbers = [...main_include_notes_number];
 
-    //if (bh.include_track_relation) {
-    //  final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
-    //  include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
-    //}
-
-    //if (this.tracks.include_track_relation) {
-    //  final_notes = [...final_notes, ...(this.tracks?.relation?.notes ?? [])];
-    //}
 
     final_notes = final_notes
       .filter((n) => include_numbers.includes(n.number))
@@ -186,59 +197,54 @@ export class GINA {
       //|….1….3….5….|
       //|…..2...4…..|
       let pid = "none";
-      if (81 === n.number) {
-        pid = "1";
-      }
 
+      //--- left
       if (80 == n.number ) {
-        pid = "2";
-      }
-
-      if (79 == n.number) {
         pid = "3";
       }
 
+      if (79 == n.number) {
+        pid = "2";
+      }
+
       if (78 == n.number) {
-        pid = "4";
+        pid = "1";
       }
 
-      if (77 == n.number) {
-        pid = "5";
-      }
-
+      //--- right
       if (76 == n.number) {
-        pid = "6";
+        pid = "3";
       }
 
       if (75 == n.number) {
-        pid = "7";
+        pid = "2";
       }
 
       if (74 == n.number) {
-        pid = "8";
+        pid = "1";
       }
 
-      if (73 == n.number) {
-        pid = "9";
-      }
 
       // moodchange
       let is_mc = "0";
-      if (this.tracks.include_track_relation) {
 
-        let found = this.tracks?.relation?.notes.some(
-          e => e.time_appear.ticks == n.time_appear.ticks
-        );
-        if (found) {
-          if (mc_cnt > 1) {
-            is_mc = "1";
-            // console.log(`note ${i}: has mood change`)
-          }
-          mc_cnt++;
-          pid = "2"; // tile-long is at middle
-        }
+      // handle left side
+      let found_mood_change_on_left = self.some(
+        e => e.time_appear.ticks === n.time_appear.ticks && e.number === 83
+      )
 
-      }
+      if (found_mood_change_on_left && [80, 79, 79].includes(n.number)) {
+        is_mc = "1"
+      } 
+
+      // handle right side
+      let found_mood_change_on_right = self.some(
+        e => e.time_appear.ticks === n.time_appear.ticks && e.number === 71
+      )
+
+      if (found_mood_change_on_right && [76, 75, 74].includes(n.number)) {
+        is_mc = "1"
+      } 
 
 
       let id_str = `id:${i}`;

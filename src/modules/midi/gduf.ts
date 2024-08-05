@@ -19,6 +19,8 @@ interface ITracks {
   include_track_relation: boolean;
 }
 
+// TODO: handle case some pan-events appear at middle of track caused incorrect
+// time-appear
 export class GDUF {
   tracks: ITracks = {
     tempo: undefined,
