@@ -141,8 +141,8 @@ export class GINA {
 
     // refine track_main
     //let main_include_notes_number = [81, 80, 79, 78, 77, 76, 75, 74, 73];
-    let left_notes_num = [83, 80, 79, 78];
-    let right_notes_num = [76, 75, 74, 71];
+    let left_notes_num = [80, 79, 78];
+    let right_notes_num = [76, 75, 74];
     let main_include_notes_number = [...left_notes_num, ...right_notes_num];
 
     if (this.tracks?.BRSO_Articulate?.notes) {
@@ -167,8 +167,13 @@ export class GINA {
 
     final_notes = [...(this.tracks?.BRSO_Articulate?.notes ?? [])];
     final_notes = [...final_notes, ...(this.tracks?.BRSO_Articulate_3?.notes ?? [])];
+
     let include_numbers = [...main_include_notes_number];
 
+    let change_mood_notes_list = final_notes
+      .filter((n) => [83, 71].includes(n.number))
+      .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks)
+    ;
 
     final_notes = final_notes
       .filter((n) => include_numbers.includes(n.number))
@@ -191,7 +196,7 @@ export class GINA {
     // @bh/@output
     //--------------
     let mc_cnt = 0;
-    let output = final_notes.map((n, i, self) => {
+    let output = final_notes.map((cur_note, i, self) => {
 
       //pid - position-id
       //|….1….3….5….|
@@ -199,60 +204,58 @@ export class GINA {
       let pid = "none";
 
       //--- left
-      if (80 == n.number ) {
+      if (80 == cur_note.number ) {
         pid = "3";
       }
 
-      if (79 == n.number) {
+      if (79 == cur_note.number) {
         pid = "2";
       }
 
-      if (78 == n.number) {
+      if (78 == cur_note.number) {
         pid = "1";
       }
 
       //--- right
-      if (76 == n.number) {
+      if (76 == cur_note.number) {
         pid = "3";
       }
 
-      if (75 == n.number) {
+      if (75 == cur_note.number) {
         pid = "2";
       }
 
-      if (74 == n.number) {
+      if (74 == cur_note.number) {
         pid = "1";
       }
-
-
       // moodchange
       let is_mc = "0";
 
       // handle left side
-      let found_mood_change_on_left = self.some(
-        e => e.time_appear.ticks === n.time_appear.ticks && e.number === 83
+      let found_mood_change_on_left = change_mood_notes_list.some(
+        cm_n => cm_n.time_appear.ticks === cur_note.time_appear.ticks && cm_n.number === 83
       )
 
-      if (found_mood_change_on_left && [80, 79, 79].includes(n.number)) {
+      if (found_mood_change_on_left && [80, 79, 79].includes(cur_note.number)) {
         is_mc = "1"
       } 
 
       // handle right side
-      let found_mood_change_on_right = self.some(
-        e => e.time_appear.ticks === n.time_appear.ticks && e.number === 71
+      let found_mood_change_on_right = change_mood_notes_list.some(
+        cm_n => cm_n.time_appear.ticks === cur_note.time_appear.ticks && cm_n.number === 83
       )
 
-      if (found_mood_change_on_right && [76, 75, 74].includes(n.number)) {
+      if (found_mood_change_on_right && [76, 75, 74].includes(cur_note.number)) {
         is_mc = "1"
       } 
 
 
       let id_str = `id:${i}`;
-      let n_str = `n:${n.number}`;
+      let n_str = `n:${cur_note.number}`;
       let pid_str = `pid:${pid}`;
-      let ta_str = `ta:${n.time_appear.secs}`;
-      let d_str = `d:${n.duration.secs}`;
-      let v_str = `v:${n.velocity}`;
+      let ta_str = `ta:${cur_note.time_appear.secs}`;
+      let d_str = `d:${cur_note.duration.secs}`;
+      let v_str = `v:${cur_note.velocity}`;
       let mc_str = `mc:${is_mc}`;
       return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str].join("-");
     });
