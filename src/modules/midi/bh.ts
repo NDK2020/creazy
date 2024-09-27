@@ -120,14 +120,17 @@ export class BH {
     final_notes = [...(this.tracks?.main?.notes ?? [])];
     let include_numbers = [...main_include_notes_number];
 
-    //if (bh.include_track_relation) {
-    //  final_notes = [...final_notes, ...(bh?.track_relation?.notes ?? [])];
-    //  include_numbers = [...include_numbers, ...relation_inclucde_notes_number];
-    //}
+    if (this.tracks.include_track_relation) {
+      //final_notes = [...final_notes, ...(this.tracks?.relation?.notes ?? [])];
+      console.log("relation notes");
+      console.log(this.tracks?.relation?.notes);
+      console.log("********************");
+    }
 
     final_notes = final_notes
       .filter((n) => include_numbers.includes(n.number))
       .sort((a, b) => a.time_appear.ticks - b.time_appear.ticks);
+
 
     console.log("final_notes");
     console.log(final_notes);
@@ -137,30 +140,43 @@ export class BH {
     //--------------
     // @bh/@output
     //--------------
-    let mc_cnt = 0;
-    let output = final_notes.map((n, i) => {
+    let change_mood_notes: MergedNote[];
+    if (this.tracks.include_track_relation) {
+       change_mood_notes = final_notes
+        .filter(final_note => 
+          this.tracks?.relation?.notes.some(rel_note => 
+            final_note.time_appear.ticks == rel_note.time_appear.ticks)
+            && final_note.time_appear.secs > 0.8 // remove too early note moodc chage
+        )
+
+      console.log("change-mood-notes");
+      console.log(change_mood_notes);
+      console.log("********************");
+    }
+
+    let output = final_notes.map((cur_note, i) => {
 
       //pid - position-id
       //|….1….3….5….|
       //|…..2...4…..|
       let pid = "none";
-      if (n.number == 96) {
+      if (cur_note.number == 96) {
         pid = "0";
       }
 
-      if (n.number == 97) {
+      if (cur_note.number == 97) {
         pid = "1";
       }
 
-      if (n.number == 98) {
+      if (cur_note.number == 98) {
         pid = "2";
       }
 
-      if (n.number == 99) {
+      if (cur_note.number == 99) {
         pid = "3";
       }
 
-      if (n.number == 100) {
+      if (cur_note.number == 100) {
         pid = "4";
       }
 
@@ -168,25 +184,24 @@ export class BH {
       let is_mc = "0";
       if (this.tracks.include_track_relation) {
 
-        let found = this.tracks?.relation?.notes.some(
-          e => e.time_appear.ticks == n.time_appear.ticks
+        let is_cur_note_mc = change_mood_notes.some(
+          cmn => cmn.time_appear.ticks == cur_note.time_appear.ticks
         );
-        if (found) {
-          if (mc_cnt > 1) {
-            is_mc = "1";
-            // console.log(`note ${i}: has mood change`)
-          }
-          mc_cnt++;
+
+        if (is_cur_note_mc) {
+          is_mc = "1";
+          console.log(`note ${i}: has mood change`)
           pid = "2"; // tile-long is at middle
         }
+
       }
 
       let id_str = `id:${i}`;
-      let n_str = `n:${n.number}`;
+      let n_str = `n:${cur_note.number}`;
       let pid_str = `pid:${pid}`;
-      let ta_str = `ta:${n.time_appear.secs}`;
-      let d_str = `d:${n.duration.secs}`;
-      let v_str = `v:${n.velocity}`;
+      let ta_str = `ta:${cur_note.time_appear.secs}`;
+      let d_str = `d:${cur_note.duration.secs}`;
+      let v_str = `v:${cur_note.velocity}`;
       let mc_str = `mc:${is_mc}`;
       return [id_str, n_str, pid_str, ta_str, d_str, v_str, mc_str].join("-");
     });

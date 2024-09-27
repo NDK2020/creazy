@@ -115,7 +115,7 @@ export class DR {
 
     // refine track_main
     let main_include_notes_number = [84, 85, 86, 96, 97, 98, 88, 100, 102];
-    let relation_included_notes_number = Array(6)
+    let relation_included_notes_number = Array(7)
       .fill(0)
       .map((_, index) => index);
     final_notes = [...(this.tracks?.main?.notes ?? [])];
