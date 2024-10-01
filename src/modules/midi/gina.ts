@@ -71,7 +71,7 @@ export class GINA {
     let track_brso_articulates = midi.tracks.filter((track_events) => {
       return track_events
         .filter(is_track_name_event)
-        .find((n) => n.text === "BRSO Articulate");
+        .find((n) => n.text === "BRSO Articulate" || n.text == "main");
     });
 
     let track_brso_articulate = track_brso_articulates.find((track) => {
